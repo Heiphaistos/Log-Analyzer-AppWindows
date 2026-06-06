@@ -29,6 +29,10 @@ public sealed class EventItemViewModel : ObservableObject
 
     public bool HasSolution => Entry.Solution is not null;
 
+    public int Count => Entry.Count;
+    public bool HasMultiple => Entry.Count > 1;
+    public string CountText => $"×{Entry.Count}";
+
     public string MetaLine => $"{Source} · {TimeText} · {ProcessText}";
 
     public bool IsExpanded

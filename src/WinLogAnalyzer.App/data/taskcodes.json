@@ -1,0 +1,80 @@
+{
+  "0x00000001": {
+    "title": "Fonction incorrecte / erreur generale",
+    "explanation": "La tache s'est terminee avec une erreur generique (0x1). Souvent un script ou programme appele qui retourne un code d'erreur non nul.",
+    "remediation": "1. Ouvrir l'action de la tache (Planificateur -> proprietes -> Actions). 2. Executer manuellement la commande pour voir l'erreur reelle. 3. Verifier les chemins et arguments.",
+    "severity": "error"
+  },
+  "0x00000002": {
+    "title": "Fichier introuvable (0x2)",
+    "explanation": "Le programme ou script declenche par la tache n'existe pas au chemin indique.",
+    "remediation": "1. Verifier le chemin du programme dans l'onglet Actions. 2. Corriger le chemin (espaces -> guillemets). 3. Verifier que le fichier n'a pas ete deplace/supprime.",
+    "severity": "error"
+  },
+  "0x0000000A": {
+    "title": "Environnement incorrect (0xA)",
+    "explanation": "Erreur d'environnement lors du lancement (variables, repertoire de travail).",
+    "remediation": "1. Definir le 'Demarrer dans' (repertoire de travail) dans l'action. 2. Verifier les variables d'environnement requises.",
+    "severity": "warning"
+  },
+  "0x00041301": {
+    "title": "Tache en cours d'execution",
+    "explanation": "La tache est actuellement en cours (0x41301). Etat normal, pas une erreur.",
+    "remediation": "Aucune action. Attendre la fin de l'execution.",
+    "severity": "info"
+  },
+  "0x00041302": {
+    "title": "Tache desactivee",
+    "explanation": "La tache est desactivee (0x41302) et ne se declenchera pas.",
+    "remediation": "Si elle doit s'executer : Planificateur -> clic droit -> Activer.",
+    "severity": "info"
+  },
+  "0x00041303": {
+    "title": "Tache jamais executee",
+    "explanation": "La tache n'a encore jamais ete declenchee (0x41303).",
+    "remediation": "Verifier les declencheurs (Triggers). Tester via clic droit -> Executer.",
+    "severity": "info"
+  },
+  "0x00041306": {
+    "title": "Tache arretee par l'utilisateur",
+    "explanation": "La tache a ete terminee manuellement (0x41306).",
+    "remediation": "Aucune action si volontaire.",
+    "severity": "info"
+  },
+  "0x8004131F": {
+    "title": "Instance deja en cours",
+    "explanation": "Une instance de la tache tourne deja et la regle interdit les executions paralleles (0x8004131F).",
+    "remediation": "1. Verifier pourquoi l'instance precedente ne se termine pas. 2. Ajuster la regle 'Si la tache est deja en cours' dans Parametres.",
+    "severity": "warning"
+  },
+  "0x80070002": {
+    "title": "Fichier introuvable (0x80070002)",
+    "explanation": "Le systeme ne trouve pas le fichier specifie par l'action de la tache.",
+    "remediation": "1. Corriger le chemin du programme/script. 2. Mettre les chemins avec espaces entre guillemets. 3. Verifier les droits d'acces au dossier.",
+    "severity": "error"
+  },
+  "0x80070005": {
+    "title": "Acces refuse (0x80070005)",
+    "explanation": "La tache n'a pas les permissions pour executer l'action (droits insuffisants du compte).",
+    "remediation": "1. Onglet General -> 'Executer avec les autorisations maximales'. 2. Verifier le compte d'execution. 3. Verifier les ACL du fichier cible.",
+    "severity": "error"
+  },
+  "0x800704DD": {
+    "title": "Utilisateur non connecte (0x800704DD)",
+    "explanation": "La tache requiert une session interactive mais aucun utilisateur n'est connecte.",
+    "remediation": "Onglet General -> 'Executer meme si l'utilisateur n'est pas connecte'.",
+    "severity": "warning"
+  },
+  "0x80041309": {
+    "title": "Declencheur introuvable (0x80041309)",
+    "explanation": "Le declencheur de la tache n'a pas ete trouve ou est invalide.",
+    "remediation": "Recreer le declencheur dans l'onglet Declencheurs.",
+    "severity": "warning"
+  },
+  "0xC000013A": {
+    "title": "Arret force (Ctrl+C / arret application)",
+    "explanation": "Le processus de la tache a ete termine par un signal d'arret (0xC000013A).",
+    "remediation": "Verifier si un arret systeme ou un timeout a interrompu la tache. Augmenter le delai si necessaire.",
+    "severity": "warning"
+  }
+}

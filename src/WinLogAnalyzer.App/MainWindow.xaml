@@ -1,249 +1,40 @@
 <Window x:Class="WinLogAnalyzer.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:inf="clr-namespace:WinLogAnalyzer.App.Infrastructure"
-        xmlns:sc="clr-namespace:System.Windows.Controls;assembly=PresentationFramework"
-        Title="WinLog Analyzer" Height="780" Width="1180"
+        xmlns:views="clr-namespace:WinLogAnalyzer.App.Views"
+        Title="WinLog Analyzer" Height="820" Width="1200"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource Bg}"
         FontFamily="Segoe UI">
 
-    <Window.Resources>
-        <inf:SeverityToBrushConverter x:Key="SevBrush" />
-        <inf:NullToVisibilityConverter x:Key="NullVis" />
-        <BooleanToVisibilityConverter x:Key="BoolVis" />
-
-        <!-- Carte evenement depliable -->
-        <DataTemplate x:Key="EventTemplate">
-            <Border Background="{StaticResource BgCard}" CornerRadius="12"
-                    BorderThickness="1" BorderBrush="{StaticResource Border}"
-                    Margin="0,0,0,12">
-                <Border.Style>
-                    <Style TargetType="Border">
-                        <Setter Property="BorderBrush" Value="{StaticResource Border}" />
-                    </Style>
-                </Border.Style>
-                <Grid>
-                    <!-- Bande couleur severite a gauche -->
-                    <Border Width="4" HorizontalAlignment="Left" CornerRadius="12,0,0,12"
-                            Background="{Binding Level, Converter={StaticResource SevBrush}}" />
-
-                    <StackPanel Margin="16,0,0,0">
-                        <!-- En-tete cliquable -->
-                        <ToggleButton IsChecked="{Binding IsExpanded, Mode=TwoWay}"
-                                      Cursor="Hand" Background="Transparent" BorderThickness="0">
-                            <ToggleButton.Template>
-                                <ControlTemplate TargetType="ToggleButton">
-                                    <Border Background="Transparent" Padding="16,14">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-
-                                            <TextBlock Grid.Column="0" Text="{Binding EventId}"
-                                                       Foreground="{StaticResource Text}"
-                                                       FontWeight="Bold" FontSize="15"
-                                                       MinWidth="60" VerticalAlignment="Center" />
-
-                                            <Border Grid.Column="1" CornerRadius="999" Padding="10,3"
-                                                    Margin="8,0" VerticalAlignment="Center"
-                                                    Background="{Binding Level, Converter={StaticResource SevBrush}}"
-                                                    Opacity="0.18" />
-                                            <TextBlock Grid.Column="1" Text="{Binding Level}"
-                                                       Margin="8,0" Padding="10,3"
-                                                       FontSize="11" FontWeight="Bold"
-                                                       VerticalAlignment="Center"
-                                                       Foreground="{Binding Level, Converter={StaticResource SevBrush}}" />
-
-                                            <StackPanel Grid.Column="2" Margin="8,0" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Title}" Foreground="{StaticResource Text}"
-                                                           FontSize="14" FontWeight="SemiBold"
-                                                           TextTrimming="CharacterEllipsis" />
-                                                <TextBlock Text="{Binding MetaLine}" Foreground="{StaticResource TextDim}"
-                                                           FontSize="12" Margin="0,3,0,0"
-                                                           TextTrimming="CharacterEllipsis" />
-                                            </StackPanel>
-
-                                            <TextBlock Grid.Column="3" x:Name="chev" Text="&#x25B6;"
-                                                       Foreground="{StaticResource TextDim}"
-                                                       VerticalAlignment="Center" FontSize="12" />
-                                        </Grid>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsChecked" Value="True">
-                                            <Setter TargetName="chev" Property="Text" Value="&#x25BC;" />
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </ToggleButton.Template>
-                        </ToggleButton>
-
-                        <!-- Corps depli -->
-                        <StackPanel Margin="16,0,16,16"
-                                    Visibility="{Binding IsExpanded, Converter={StaticResource BoolVis}}">
-                            <Border Height="1" Background="{StaticResource Border}" Margin="0,0,0,14" />
-
-                            <TextBlock Text="MESSAGE BRUT" Style="{StaticResource FieldLabel}" />
-                            <Border Background="{StaticResource Bg}" BorderBrush="{StaticResource Border}"
-                                    BorderThickness="1" CornerRadius="8" Padding="12" MaxHeight="200">
-                                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                    <TextBlock Text="{Binding Message}" Foreground="{StaticResource TextDim}"
-                                               FontFamily="Consolas" FontSize="12" TextWrapping="Wrap" />
-                                </ScrollViewer>
-                            </Border>
-
-                            <!-- Solution connue -->
-                            <Border Margin="0,14,0,0" CornerRadius="10" Padding="16"
-                                    Background="#1A2433" BorderBrush="#2D4763" BorderThickness="1"
-                                    Visibility="{Binding Solution, Converter={StaticResource NullVis}}">
-                                <StackPanel>
-                                    <TextBlock Foreground="#4CC4FF" FontWeight="Bold" FontSize="14"
-                                               Text="{Binding Solution.Title}" />
-                                    <TextBlock Text="EXPLICATION" Style="{StaticResource FieldLabel}" Margin="0,12,0,5" />
-                                    <TextBlock Text="{Binding Solution.Explanation}" Foreground="{StaticResource Text}"
-                                               FontSize="13" TextWrapping="Wrap" LineHeight="20" />
-                                    <TextBlock Text="REMEDIATION" Style="{StaticResource FieldLabel}" Margin="0,12,0,5" />
-                                    <TextBlock Text="{Binding Solution.Remediation}" Foreground="{StaticResource Text}"
-                                               FontSize="13" TextWrapping="Wrap" LineHeight="22" />
-                                    <ItemsControl ItemsSource="{Binding Solution.Links}" Margin="0,12,0,0">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Margin="0,2">
-                                                    <Hyperlink NavigateUri="{Binding}"
-                                                               RequestNavigate="Hyperlink_RequestNavigate"
-                                                               Foreground="#4C8DFF">
-                                                        <Run Text="Documentation Microsoft" /> &#x2197;
-                                                    </Hyperlink>
-                                                </TextBlock>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Pas de solution -->
-                            <TextBlock Margin="0,14,0,0" FontSize="13" FontStyle="Italic"
-                                       Foreground="{StaticResource TextDim}"
-                                       TextWrapping="Wrap"
-                                       Text="Aucune solution repertoriee pour cet Event ID. Ajoute-la dans data/solutions.json."
-                                       Visibility="{Binding Solution, Converter={StaticResource NullVis}, ConverterParameter=invert}" />
-                        </StackPanel>
-                    </StackPanel>
-                </Grid>
-            </Border>
-        </DataTemplate>
-    </Window.Resources>
-
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- ===== Topbar ===== -->
+        <!-- Topbar -->
         <Border Grid.Row="0" Background="{StaticResource BgElev}" BorderBrush="{StaticResource Border}"
-                BorderThickness="0,0,0,1" Padding="28,18">
+                BorderThickness="0,0,0,1" Padding="28,16">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="&#x26A1;" FontSize="26" VerticalAlignment="Center"
                            Foreground="#4C8DFF" Margin="0,0,12,0" />
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="WinLog Analyzer" Foreground="{StaticResource Text}"
-                               FontSize="20" FontWeight="Bold" />
-                    <TextBlock Text="Erreurs critiques &amp; remediation — application locale"
+                    <TextBlock Text="WinLog Analyzer" FontSize="20" FontWeight="Bold" />
+                    <TextBlock Text="Diagnostic Windows — evenements &amp; planificateur de taches (v1.0)"
                                Foreground="{StaticResource TextDim}" FontSize="12" />
                 </StackPanel>
             </StackPanel>
         </Border>
 
-        <!-- ===== Controls ===== -->
-        <Grid Grid.Row="1" Margin="28,22,28,8">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-
-            <StackPanel Grid.Column="0" Margin="0,0,16,0">
-                <TextBlock Text="JOURNAL" Style="{StaticResource FieldLabel}" />
-                <ComboBox Width="170" ItemsSource="{Binding AvailableLogs}"
-                          SelectedItem="{Binding SelectedLog}" />
-            </StackPanel>
-
-            <StackPanel Grid.Column="1" Margin="0,0,16,0">
-                <TextBlock Text="NOMBRE MAX" Style="{StaticResource FieldLabel}" />
-                <TextBox Width="90" Text="{Binding MaxCount, UpdateSourceTrigger=LostFocus}" />
-            </StackPanel>
-
-            <StackPanel Grid.Column="2" Margin="0,0,16,0">
-                <TextBlock Text="FILTRE" Style="{StaticResource FieldLabel}" />
-                <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
-            </StackPanel>
-
-            <Button Grid.Column="3" Content="Analyser" VerticalAlignment="Bottom"
-                    Style="{StaticResource PrimaryButton}" Command="{Binding AnalyzeCommand}" />
-        </Grid>
-
-        <!-- ===== Stats ===== -->
-        <UniformGrid Grid.Row="2" Columns="4" Margin="28,8,28,8">
-            <Border Background="{StaticResource BgCard}" BorderBrush="{StaticResource Border}"
-                    BorderThickness="1" CornerRadius="12" Padding="18,16" Margin="0,0,8,0">
-                <StackPanel>
-                    <TextBlock Text="{Binding TotalCount}" Foreground="{StaticResource Text}"
-                               FontSize="28" FontWeight="Bold" />
-                    <TextBlock Text="Evenements" Foreground="{StaticResource TextDim}" FontSize="12" />
-                </StackPanel>
-            </Border>
-            <Border Background="{StaticResource BgCard}" BorderBrush="{StaticResource Border}"
-                    BorderThickness="1" CornerRadius="12" Padding="18,16" Margin="4,0">
-                <StackPanel>
-                    <TextBlock Text="{Binding CriticalCount}" Foreground="{StaticResource Critical}"
-                               FontSize="28" FontWeight="Bold" />
-                    <TextBlock Text="Critiques" Foreground="{StaticResource TextDim}" FontSize="12" />
-                </StackPanel>
-            </Border>
-            <Border Background="{StaticResource BgCard}" BorderBrush="{StaticResource Border}"
-                    BorderThickness="1" CornerRadius="12" Padding="18,16" Margin="4,0">
-                <StackPanel>
-                    <TextBlock Text="{Binding ErrorCount}" Foreground="{StaticResource ErrorBrush}"
-                               FontSize="28" FontWeight="Bold" />
-                    <TextBlock Text="Erreurs" Foreground="{StaticResource TextDim}" FontSize="12" />
-                </StackPanel>
-            </Border>
-            <Border Background="{StaticResource BgCard}" BorderBrush="{StaticResource Border}"
-                    BorderThickness="1" CornerRadius="12" Padding="18,16" Margin="8,0,0,0">
-                <StackPanel>
-                    <TextBlock Text="{Binding SolvedCount}" Foreground="{StaticResource Solved}"
-                               FontSize="28" FontWeight="Bold" />
-                    <TextBlock Text="Solutions connues" Foreground="{StaticResource TextDim}" FontSize="12" />
-                </StackPanel>
-            </Border>
-        </UniformGrid>
-
-        <!-- ===== Liste ===== -->
-        <ScrollViewer Grid.Row="3" Margin="28,8,28,8" VerticalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding EventsView}" ItemTemplate="{StaticResource EventTemplate}" />
-        </ScrollViewer>
-
-        <!-- ===== Status bar ===== -->
-        <Border Grid.Row="4" Background="{StaticResource BgElev}" BorderBrush="{StaticResource Border}"
-                BorderThickness="0,1,0,0" Padding="28,10">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="&#x25CF;" Foreground="{StaticResource Solved}" FontSize="10"
-                           VerticalAlignment="Center" Margin="0,0,8,0"
-                           Visibility="{Binding IsNotLoading, Converter={StaticResource BoolVis}}" />
-                <TextBlock Text="&#x231B;" FontSize="12" VerticalAlignment="Center" Margin="0,0,8,0"
-                           Foreground="{StaticResource Accent}"
-                           Visibility="{Binding IsLoading, Converter={StaticResource BoolVis}}" />
-                <TextBlock Text="{Binding StatusText}" Foreground="{StaticResource TextDim}"
-                           FontSize="13" VerticalAlignment="Center" />
-            </StackPanel>
-        </Border>
+        <!-- Onglets -->
+        <TabControl Grid.Row="1" Padding="0" Margin="0,8,0,0">
+            <TabItem Header="Evenements">
+                <views:EventsView DataContext="{Binding Events}" />
+            </TabItem>
+            <TabItem Header="Planificateur de taches">
+                <views:TasksView DataContext="{Binding Tasks}" />
+            </TabItem>
+        </TabControl>
     </Grid>
 </Window>

@@ -1,0 +1,275 @@
+<UserControl x:Class="WinLogAnalyzer.App.Views.EventsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:inf="clr-namespace:WinLogAnalyzer.App.Infrastructure"
+             Background="{StaticResource Bg}">
+
+    <UserControl.Resources>
+        <inf:SeverityToBrushConverter x:Key="SevBrush" />
+        <inf:NullToVisibilityConverter x:Key="NullVis" />
+        <BooleanToVisibilityConverter x:Key="BoolVis" />
+
+        <!-- Carte evenement depliable -->
+        <DataTemplate x:Key="EventTemplate">
+            <Border Background="{StaticResource BgCard}" CornerRadius="12"
+                    BorderThickness="1" BorderBrush="{StaticResource Border}" Margin="0,0,0,12">
+                <Grid>
+                    <Border Width="4" HorizontalAlignment="Left" CornerRadius="12,0,0,12"
+                            Background="{Binding Level, Converter={StaticResource SevBrush}}" />
+                    <StackPanel Margin="16,0,0,0">
+                        <ToggleButton IsChecked="{Binding IsExpanded, Mode=TwoWay}"
+                                      Cursor="Hand" Background="Transparent" BorderThickness="0">
+                            <ToggleButton.Template>
+                                <ControlTemplate TargetType="ToggleButton">
+                                    <Border Background="Transparent" Padding="16,14">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding EventId}" FontWeight="Bold"
+                                                       FontSize="15" MinWidth="60" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="1" Text="{Binding Level}" Margin="8,0" Padding="10,3"
+                                                       FontSize="11" FontWeight="Bold" VerticalAlignment="Center"
+                                                       Foreground="{Binding Level, Converter={StaticResource SevBrush}}" />
+                                            <Border Grid.Column="2" Background="{StaticResource Border}" CornerRadius="99"
+                                                    Padding="8,2" VerticalAlignment="Center"
+                                                    Visibility="{Binding HasMultiple, Converter={StaticResource BoolVis}}">
+                                                <TextBlock Text="{Binding CountText}" FontSize="11"
+                                                           Foreground="{StaticResource TextDim}" />
+                                            </Border>
+                                            <StackPanel Grid.Column="3" Margin="8,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{Binding MetaLine}" Foreground="{StaticResource TextDim}"
+                                                           FontSize="12" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="4" x:Name="chev" Text="&#x25B6;"
+                                                       Foreground="{StaticResource TextDim}" VerticalAlignment="Center" FontSize="12" />
+                                        </Grid>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsChecked" Value="True">
+                                            <Setter TargetName="chev" Property="Text" Value="&#x25BC;" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </ToggleButton.Template>
+                        </ToggleButton>
+
+                        <StackPanel Margin="16,0,16,16"
+                                    Visibility="{Binding IsExpanded, Converter={StaticResource BoolVis}}">
+                            <Border Height="1" Background="{StaticResource Border}" Margin="0,0,0,14" />
+                            <TextBlock Text="MESSAGE BRUT" Style="{StaticResource FieldLabel}" />
+                            <Border Background="{StaticResource Bg}" BorderBrush="{StaticResource Border}"
+                                    BorderThickness="1" CornerRadius="8" Padding="12" MaxHeight="200">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <TextBlock Text="{Binding Message}" Foreground="{StaticResource TextDim}"
+                                               FontFamily="Consolas" FontSize="12" TextWrapping="Wrap" />
+                                </ScrollViewer>
+                            </Border>
+                            <Border Margin="0,14,0,0" CornerRadius="10" Padding="16"
+                                    Background="#1A2433" BorderBrush="#2D4763" BorderThickness="1"
+                                    Visibility="{Binding Solution, Converter={StaticResource NullVis}}">
+                                <StackPanel>
+                                    <TextBlock Foreground="#4CC4FF" FontWeight="Bold" FontSize="14"
+                                               Text="{Binding Solution.Title}" />
+                                    <TextBlock Text="EXPLICATION" Style="{StaticResource FieldLabel}" Margin="0,12,0,5" />
+                                    <TextBlock Text="{Binding Solution.Explanation}" FontSize="13"
+                                               TextWrapping="Wrap" LineHeight="20" />
+                                    <TextBlock Text="REMEDIATION" Style="{StaticResource FieldLabel}" Margin="0,12,0,5" />
+                                    <TextBlock Text="{Binding Solution.Remediation}" FontSize="13"
+                                               TextWrapping="Wrap" LineHeight="22" />
+                                    <ItemsControl ItemsSource="{Binding Solution.Links}" Margin="0,12,0,0">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Margin="0,2">
+                                                    <Hyperlink NavigateUri="{Binding}"
+                                                               RequestNavigate="Hyperlink_RequestNavigate"
+                                                               Foreground="#4C8DFF">
+                                                        <Run Text="Documentation Microsoft" /> &#x2197;
+                                                    </Hyperlink>
+                                                </TextBlock>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                            <TextBlock Margin="0,14,0,0" FontSize="13" FontStyle="Italic"
+                                       Foreground="{StaticResource TextDim}" TextWrapping="Wrap"
+                                       Text="Aucune solution repertoriee pour cet Event ID. Ajoute-la dans data/solutions.json."
+                                       Visibility="{Binding Solution, Converter={StaticResource NullVis}, ConverterParameter=invert}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid Margin="0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Controls -->
+        <Grid Grid.Row="0" Margin="28,18,28,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                <TextBlock Text="JOURNAL" Style="{StaticResource FieldLabel}" />
+                <ComboBox Width="160" ItemsSource="{Binding AvailableLogs}" SelectedItem="{Binding SelectedLog}" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Margin="0,0,16,0">
+                <TextBlock Text="NOMBRE MAX" Style="{StaticResource FieldLabel}" />
+                <TextBox Width="90" Text="{Binding MaxCount, UpdateSourceTrigger=LostFocus}" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Margin="0,0,16,0">
+                <TextBlock Text="FILTRE" Style="{StaticResource FieldLabel}" />
+                <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+            <Button Grid.Column="3" Content="Analyser" VerticalAlignment="Bottom"
+                    Style="{StaticResource PrimaryButton}" Command="{Binding AnalyzeCommand}" />
+        </Grid>
+
+        <!-- Niveaux + options -->
+        <WrapPanel Grid.Row="1" Margin="28,8,28,4" Orientation="Horizontal">
+            <TextBlock Text="Niveaux :" Foreground="{StaticResource TextDim}" FontSize="13"
+                       VerticalAlignment="Center" Margin="0,0,12,0" />
+            <CheckBox Content="Critical" IsChecked="{Binding LevelCritical}" />
+            <CheckBox Content="Error" IsChecked="{Binding LevelError}" />
+            <CheckBox Content="Warning" IsChecked="{Binding LevelWarning}" />
+            <CheckBox Content="Information" IsChecked="{Binding LevelInformation}" />
+            <Border Width="1" Background="{StaticResource Border}" Margin="6,2,14,2" />
+            <CheckBox Content="Grouper doublons" IsChecked="{Binding GroupDuplicates}" />
+            <CheckBox Content="Surveillance temps reel" IsChecked="{Binding MonitorEnabled}" />
+            <Border Background="{StaticResource Critical}" CornerRadius="99" Padding="8,2" Margin="4,0"
+                    VerticalAlignment="Center" Visibility="{Binding HasNew, Converter={StaticResource BoolVis}}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding NewCount}" Foreground="White" FontSize="11" FontWeight="Bold" />
+                    <TextBlock Text=" nouveaux" Foreground="White" FontSize="11" />
+                </StackPanel>
+            </Border>
+        </WrapPanel>
+
+        <!-- Stats -->
+        <UniformGrid Grid.Row="2" Columns="4" Margin="28,8,28,4">
+            <Border Background="{StaticResource BgCard}" BorderBrush="{StaticResource Border}" BorderThickness="1"
+                    CornerRadius="12" Padding="16,12" Margin="0,0,8,0">
+                <StackPanel>
+                    <TextBlock Text="{Binding TotalCount}" FontSize="26" FontWeight="Bold" />
+                    <TextBlock Text="Evenements" Foreground="{StaticResource TextDim}" FontSize="12" />
+                </StackPanel>
+            </Border>
+            <Border Background="{StaticResource BgCard}" BorderBrush="{StaticResource Border}" BorderThickness="1"
+                    CornerRadius="12" Padding="16,12" Margin="4,0">
+                <StackPanel>
+                    <TextBlock Text="{Binding CriticalCount}" Foreground="{StaticResource Critical}" FontSize="26" FontWeight="Bold" />
+                    <TextBlock Text="Critiques" Foreground="{StaticResource TextDim}" FontSize="12" />
+                </StackPanel>
+            </Border>
+            <Border Background="{StaticResource BgCard}" BorderBrush="{StaticResource Border}" BorderThickness="1"
+                    CornerRadius="12" Padding="16,12" Margin="4,0">
+                <StackPanel>
+                    <TextBlock Text="{Binding ErrorCount}" Foreground="{StaticResource ErrorBrush}" FontSize="26" FontWeight="Bold" />
+                    <TextBlock Text="Erreurs" Foreground="{StaticResource TextDim}" FontSize="12" />
+                </StackPanel>
+            </Border>
+            <Border Background="{StaticResource BgCard}" BorderBrush="{StaticResource Border}" BorderThickness="1"
+                    CornerRadius="12" Padding="16,12" Margin="8,0,0,0">
+                <StackPanel>
+                    <TextBlock Text="{Binding SolvedCount}" Foreground="{StaticResource Solved}" FontSize="26" FontWeight="Bold" />
+                    <TextBlock Text="Solutions connues" Foreground="{StaticResource TextDim}" FontSize="12" />
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+
+        <!-- Timeline + actions -->
+        <Grid Grid.Row="3" Margin="28,8,28,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Border Grid.Column="0" Background="{StaticResource BgCard}" BorderBrush="{StaticResource Border}"
+                    BorderThickness="1" CornerRadius="12" Padding="14,10" Margin="0,0,12,0">
+                <StackPanel>
+                    <TextBlock Text="ACTIVITE PAR JOUR" Style="{StaticResource FieldLabel}" />
+                    <ItemsControl ItemsSource="{Binding Timeline}" Height="78">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="3,0" VerticalAlignment="Bottom" ToolTip="{Binding Tooltip}">
+                                    <Border Width="16" Height="{Binding Height}" CornerRadius="3,3,0,0"
+                                            Background="{StaticResource Accent}" />
+                                    <TextBlock Text="{Binding Label}" FontSize="9" Foreground="{StaticResource TextDim}"
+                                               HorizontalAlignment="Center" Margin="0,3,0,0" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="EXPORT / OUTILS" Style="{StaticResource FieldLabel}" />
+                <WrapPanel>
+                    <Button Content="CSV" Style="{StaticResource GhostButton}" Margin="0,0,6,6" Command="{Binding ExportCsvCommand}" />
+                    <Button Content="HTML" Style="{StaticResource GhostButton}" Margin="0,0,6,6" Command="{Binding ExportHtmlCommand}" />
+                    <Button Content="Services" Style="{StaticResource GhostButton}" Margin="0,0,6,6" Click="OpenServices" />
+                    <Button Content="Fiabilite" Style="{StaticResource GhostButton}" Margin="0,0,6,6" Click="OpenReliability" />
+                    <Button Content="RAM test" Style="{StaticResource GhostButton}" Margin="0,0,6,6" Click="OpenMemDiag" />
+                    <Button Content="Observateur" Style="{StaticResource GhostButton}" Margin="0,0,0,6" Click="OpenEventVwr" />
+                </WrapPanel>
+            </StackPanel>
+        </Grid>
+
+        <!-- Liste virtualisee -->
+        <ListBox Grid.Row="4" Margin="28,4,28,4" Background="Transparent" BorderThickness="0"
+                 ItemsSource="{Binding EventsView}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 VirtualizingPanel.IsVirtualizing="True"
+                 VirtualizingPanel.VirtualizationMode="Recycling"
+                 ItemTemplate="{StaticResource EventTemplate}">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <ContentPresenter />
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListBox.ItemContainerStyle>
+        </ListBox>
+
+        <!-- Status -->
+        <Border Grid.Row="5" Background="{StaticResource BgElev}" BorderBrush="{StaticResource Border}"
+                BorderThickness="0,1,0,0" Padding="28,10">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="&#x25CF;" Foreground="{StaticResource Solved}" FontSize="10" VerticalAlignment="Center"
+                           Margin="0,0,8,0" Visibility="{Binding IsNotLoading, Converter={StaticResource BoolVis}}" />
+                <TextBlock Text="&#x231B;" Foreground="{StaticResource Accent}" FontSize="12" VerticalAlignment="Center"
+                           Margin="0,0,8,0" Visibility="{Binding IsLoading, Converter={StaticResource BoolVis}}" />
+                <TextBlock Text="{Binding StatusText}" Foreground="{StaticResource TextDim}" FontSize="13" VerticalAlignment="Center" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

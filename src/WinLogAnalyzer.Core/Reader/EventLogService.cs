@@ -6,16 +6,16 @@ using WinLogAnalyzer.Core.Process;
 namespace WinLogAnalyzer.Core.Reader;
 
 /// <summary>
-/// Lit les events Critical (Level=1) et Error (Level=2) en streaming.
-/// Aucune charge complete en memoire : lecture event par event + dispose immediat.
+/// Lit les events d'un journal en streaming (pas de charge complete en RAM) et les
+/// normalise en <see cref="EventEntry"/> enrichies de leur solution.
 /// </summary>
 public sealed class EventLogService
 {
     private readonly ProcessResolver _resolver;
     private readonly SolutionProvider _solutions;
 
-    // XPath : Level 1=Critical, 2=Error.
-    private const string CriticalErrorQuery = "*[System[(Level=1 or Level=2)]]";
+    // Niveaux Windows : 1=Critical, 2=Error, 3=Warning, 4=Information.
+    public static readonly IReadOnlyList<int> CriticalAndError = new[] { 1, 2 };
 
     public EventLogService(ProcessResolver resolver, SolutionProvider solutions)
     {
@@ -23,18 +23,13 @@ public sealed class EventLogService
         _solutions = solutions;
     }
 
-    /// <summary>
-    /// Extrait les <paramref name="max"/> dernieres erreurs critiques d'un log.
-    /// </summary>
-    /// <param name="logName">System, Application, Security...</param>
-    /// <param name="max">Nombre max d'entrees (defaut 100).</param>
-    public IReadOnlyList<EventEntry> GetRecentCritical(string logName = "System", int max = 100)
+    /// <summary>Extrait les <paramref name="max"/> derniers events des niveaux demandes.</summary>
+    public IReadOnlyList<EventEntry> GetRecent(string logName, int max, IReadOnlyCollection<int>? levels = null)
     {
         var results = new List<EventEntry>(max);
-
-        var query = new EventLogQuery(logName, PathType.LogName, CriticalErrorQuery)
+        var query = new EventLogQuery(logName, PathType.LogName, BuildQuery(levels))
         {
-            ReverseDirection = true // plus recent -> plus ancien
+            ReverseDirection = true
         };
 
         EventLogReader reader;
@@ -59,15 +54,8 @@ public sealed class EventLogService
             {
                 using (record)
                 {
-                    try
-                    {
-                        results.Add(MapRecord(record, logName));
-                    }
-                    catch (Exception ex)
-                    {
-                        // Event corrompu / provider absent : on log et on continue.
-                        Console.Error.WriteLine($"[WARN] Skip event: {ex.Message}");
-                    }
+                    try { results.Add(Map(record, logName)); }
+                    catch (Exception ex) { Console.Error.WriteLine($"[WARN] Skip event: {ex.Message}"); }
                 }
             }
         }
@@ -75,33 +63,51 @@ public sealed class EventLogService
         return results;
     }
 
-    private EventEntry MapRecord(EventRecord record, string logName)
+    /// <summary>Cree un watcher push pour la surveillance temps reel (a Dispose par l'appelant).</summary>
+    public EventLogWatcher CreateWatcher(string logName, IReadOnlyCollection<int>? levels = null)
+    {
+        var query = new EventLogQuery(logName, PathType.LogName, BuildQuery(levels));
+        return new EventLogWatcher(query);
+    }
+
+    /// <summary>Normalise un EventRecord en EventEntry (reutilise par lecture et watcher).</summary>
+    public EventEntry Map(EventRecord record, string logName)
     {
         int? pid = record.ProcessId;
+        string source = record.ProviderName ?? "(inconnu)";
+        int eventId = record.Id;
 
         string message;
-        try
-        {
-            message = record.FormatDescription() ?? "(aucune description)";
-        }
-        catch
-        {
-            message = "(description indisponible — provider manquant)";
-        }
-
-        int eventId = record.Id;
+        try { message = record.FormatDescription() ?? "(aucune description)"; }
+        catch { message = "(description indisponible — provider manquant)"; }
 
         return new EventEntry
         {
             EventId = eventId,
-            Level = record.Level == 1 ? "Critical" : "Error",
+            Level = LevelName(record.Level),
             LogName = logName,
-            Source = record.ProviderName ?? "(inconnu)",
+            Source = source,
             TimeCreated = record.TimeCreated ?? DateTime.MinValue,
             Message = message.Trim(),
             ProcessId = pid,
             ProcessName = _resolver.Resolve(pid),
-            Solution = _solutions.Lookup(eventId)
+            Solution = _solutions.Lookup(eventId, source)
         };
     }
+
+    private static string BuildQuery(IReadOnlyCollection<int>? levels)
+    {
+        var list = (levels is null || levels.Count == 0) ? CriticalAndError : levels;
+        var clause = string.Join(" or ", list.Select(l => $"Level={l}"));
+        return $"*[System[({clause})]]";
+    }
+
+    private static string LevelName(byte? level) => level switch
+    {
+        1 => "Critical",
+        2 => "Error",
+        3 => "Warning",
+        4 => "Information",
+        _ => "Information"
+    };
 }

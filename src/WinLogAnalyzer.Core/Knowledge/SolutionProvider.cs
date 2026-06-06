@@ -4,41 +4,105 @@ using WinLogAnalyzer.Core.Models;
 namespace WinLogAnalyzer.Core.Knowledge;
 
 /// <summary>
-/// Charge solutions.json en memoire (dictionnaire Event ID -> Solution).
-/// Edition du JSON sans recompilation. Map vide si fichier absent (degradation propre).
+/// Charge solutions.json en memoire (cle -> Solution). La cle peut etre un Event ID brut
+/// ("41") ou composite ("Microsoft-Windows-Kernel-Power:41") pour lever les collisions.
+/// Supporte le hot-reload : toute modif du fichier recharge la map et leve <see cref="Changed"/>.
 /// </summary>
-public sealed class SolutionProvider
+public sealed class SolutionProvider : IDisposable
 {
-    private readonly Dictionary<int, Solution> _map;
+    private readonly string _path;
+    private volatile Dictionary<string, Solution> _map;
+    private FileSystemWatcher? _watcher;
+    private DateTime _lastReload = DateTime.MinValue;
+
+    /// <summary>Leve apres un rechargement a chaud du fichier.</summary>
+    public event Action? Changed;
 
     public int Count => _map.Count;
 
-    public SolutionProvider(string jsonPath)
+    public SolutionProvider(string jsonPath, bool hotReload = false)
     {
-        if (!File.Exists(jsonPath))
+        _path = jsonPath;
+        _map = Load(jsonPath);
+        if (hotReload) EnableHotReload();
+    }
+
+    /// <summary>
+    /// Recherche : tente d'abord la cle composite "source:id", puis l'Event ID seul.
+    /// </summary>
+    public Solution? Lookup(int eventId, string? source = null)
+    {
+        var map = _map;
+        if (!string.IsNullOrEmpty(source) &&
+            map.TryGetValue($"{source}:{eventId}", out var composite))
+            return composite;
+
+        return map.TryGetValue(eventId.ToString(), out var s) ? s : null;
+    }
+
+    private static Dictionary<string, Solution> Load(string path)
+    {
+        if (!File.Exists(path))
         {
-            _map = new();
-            Console.Error.WriteLine($"[WARN] {jsonPath} absent. Dictionnaire vide.");
-            return;
+            Console.Error.WriteLine($"[WARN] {path} absent. Dictionnaire vide.");
+            return new(StringComparer.OrdinalIgnoreCase);
         }
 
         try
         {
-            var json = File.ReadAllText(jsonPath);
+            var json = File.ReadAllText(path);
             var raw = JsonSerializer.Deserialize<Dictionary<string, Solution>>(json,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
                 ?? new();
-
-            _map = raw.ToDictionary(kv => int.Parse(kv.Key), kv => kv.Value);
+            return new Dictionary<string, Solution>(raw, StringComparer.OrdinalIgnoreCase);
         }
         catch (Exception ex)
         {
-            // JSON corrompu -> on log et on demarre avec dictionnaire vide.
-            Console.Error.WriteLine($"[ERROR] Parsing {jsonPath} echoue: {ex.Message}");
-            _map = new();
+            Console.Error.WriteLine($"[ERROR] Parsing {path} echoue: {ex.Message}");
+            return new(StringComparer.OrdinalIgnoreCase);
         }
     }
 
-    public Solution? Lookup(int eventId)
-        => _map.TryGetValue(eventId, out var s) ? s : null;
+    private void EnableHotReload()
+    {
+        var dir = Path.GetDirectoryName(_path);
+        var file = Path.GetFileName(_path);
+        if (string.IsNullOrEmpty(dir) || !Directory.Exists(dir)) return;
+
+        _watcher = new FileSystemWatcher(dir, file)
+        {
+            NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size,
+            EnableRaisingEvents = true
+        };
+        _watcher.Changed += OnFileChanged;
+    }
+
+    private void OnFileChanged(object sender, FileSystemEventArgs e)
+    {
+        // Debounce : les editeurs declenchent plusieurs evenements rapproches.
+        var now = DateTime.UtcNow;
+        if ((now - _lastReload).TotalMilliseconds < 400) return;
+        _lastReload = now;
+
+        try
+        {
+            Thread.Sleep(150); // laisser l'ecriture se terminer
+            _map = Load(_path);
+            Changed?.Invoke();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[WARN] Hot-reload echoue: {ex.Message}");
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_watcher is not null)
+        {
+            _watcher.Changed -= OnFileChanged;
+            _watcher.Dispose();
+            _watcher = null;
+        }
+    }
 }

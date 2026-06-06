@@ -2,85 +2,263 @@
   "41": {
     "title": "Kernel-Power — arret inattendu du systeme",
     "explanation": "Le systeme a redemarre sans s'arreter proprement. Cause typique : coupure d'alimentation, surchauffe, instabilite materielle (RAM/PSU/carte mere) ou crash de driver.",
-    "remediation": "1. Verifier l'alimentation et les temperatures (HWMonitor). 2. Tester la RAM via mdsched.exe. 3. Mettre a jour les drivers chipset/GPU. 4. Desactiver le demarrage rapide (Options d'alimentation) si recurrent. 5. Verifier le journal pour un Event 1001 (BugCheck) associe.",
+    "remediation": "1. Verifier l'alimentation et les temperatures (HWMonitor). 2. Tester la RAM via mdsched.exe. 3. Mettre a jour les drivers chipset/GPU. 4. Desactiver le demarrage rapide si recurrent. 5. Chercher un Event 1001 (BugCheck) associe.",
     "severity": "critical",
     "links": ["https://learn.microsoft.com/troubleshoot/windows-client/performance/event-id-41-restart"]
   },
   "6008": {
     "title": "EventLog — arret precedent inattendu",
-    "explanation": "Windows signale que l'arret precedent du systeme etait inattendu (plante ou coupure). Complement frequent de l'Event 41.",
-    "remediation": "1. Correler avec l'Event 41 et 1001 a la meme heure. 2. Analyser le dernier minidump (C:\\Windows\\Minidump) avec WinDbg ou BlueScreenView. 3. Verifier disque (chkdsk) et alimentation.",
+    "explanation": "Windows signale que l'arret precedent etait inattendu (plante ou coupure). Complement frequent de l'Event 41.",
+    "remediation": "1. Correler avec l'Event 41 et 1001 a la meme heure. 2. Analyser le dernier minidump (C:\\Windows\\Minidump). 3. Verifier disque (chkdsk) et alimentation.",
     "severity": "warning",
     "links": ["https://learn.microsoft.com/troubleshoot/windows-client/performance/event-id-41-restart"]
   },
+  "6005": {
+    "title": "EventLog — service de journal demarre",
+    "explanation": "Le service Journal des evenements a demarre (demarrage du systeme). Informatif.",
+    "remediation": "Aucune action. Repere le debut d'une session de demarrage.",
+    "severity": "info"
+  },
+  "6006": {
+    "title": "EventLog — service de journal arrete",
+    "explanation": "Le service Journal des evenements s'est arrete (arret propre du systeme). Informatif.",
+    "remediation": "Aucune action. Repere un arret normal.",
+    "severity": "info"
+  },
+  "6013": {
+    "title": "EventLog — duree de fonctionnement",
+    "explanation": "Message quotidien indiquant l'uptime du systeme. Informatif.",
+    "remediation": "Aucune action.",
+    "severity": "info"
+  },
   "1001": {
     "title": "BugCheck — ecran bleu (BSOD)",
-    "explanation": "Un crash noyau (BSOD) s'est produit. Le code d'arret (ex: 0x0000007E) et le module fautif sont indiques dans le message.",
-    "remediation": "1. Noter le code d'arret dans le message. 2. Analyser le minidump avec WinDbg (!analyze -v). 3. Mettre a jour ou rollback le driver cite. 4. Tester RAM (mdsched.exe) et disque (chkdsk /f).",
+    "explanation": "Un crash noyau (BSOD) s'est produit. Le code d'arret (ex: 0x0000007E) et le module fautif sont dans le message.",
+    "remediation": "1. Noter le code d'arret. 2. Analyser le minidump avec WinDbg (!analyze -v). 3. Mettre a jour ou rollback le driver cite. 4. Tester RAM et disque.",
     "severity": "critical",
     "links": ["https://learn.microsoft.com/windows-hardware/drivers/debugger/bug-check-code-reference2"]
   },
   "1000": {
     "title": "Application Error — crash applicatif",
-    "explanation": "Une application s'est arretee de maniere inattendue (exception non geree). Le message indique le module fautif (faulting module).",
-    "remediation": "1. Identifier l'application et le module fautif dans le message. 2. Mettre a jour l'application. 3. Reparer le runtime (.NET/VC++ Redistributable) si le module est un .dll systeme. 4. Lancer sfc /scannow si un fichier systeme est en cause.",
+    "explanation": "Une application s'est arretee de maniere inattendue (exception non geree). Le message indique le module fautif.",
+    "remediation": "1. Identifier l'app et le module fautif. 2. Mettre a jour l'application. 3. Reparer le runtime (.NET/VC++ Redist) si dll systeme. 4. sfc /scannow si fichier systeme.",
     "severity": "error",
     "links": ["https://learn.microsoft.com/troubleshoot/windows-client/application-management/application-crash-or-hang"]
   },
   "1002": {
     "title": "Application Hang — application figee",
-    "explanation": "Une application a cesse de repondre et a ete arretee. Souvent du a un blocage (deadlock), une attente reseau ou une ressource saturee.",
-    "remediation": "1. Verifier la charge CPU/RAM/disque au moment du blocage. 2. Mettre a jour l'application. 3. Desactiver les modules complementaires (addons) suspects. 4. Verifier l'acces reseau si l'app depend d'un service distant.",
+    "explanation": "Une application a cesse de repondre et a ete arretee. Souvent un blocage (deadlock), une attente reseau ou une ressource saturee.",
+    "remediation": "1. Verifier la charge CPU/RAM/disque. 2. Mettre a jour l'app. 3. Desactiver les addons suspects. 4. Verifier l'acces reseau.",
     "severity": "error",
     "links": ["https://learn.microsoft.com/troubleshoot/windows-client/application-management/application-crash-or-hang"]
   },
+  "1026": {
+    "title": ".NET Runtime — exception non geree",
+    "explanation": "Une application .NET a leve une exception non geree qui l'a fait planter. Stack trace dans le message.",
+    "remediation": "1. Lire la stack trace pour la cause. 2. Mettre a jour l'application et le .NET Runtime. 3. Contacter l'editeur avec le detail de l'exception.",
+    "severity": "error"
+  },
   "10016": {
     "title": "DistributedCOM — permissions DCOM manquantes",
-    "explanation": "Une app a tente de lancer un composant DCOM sans les permissions Launch/Activation. Tres souvent benin (bruit Windows connu).",
-    "remediation": "Generalement ignorable. Si bloquant : reperer le CLSID/APPID dans le message, ajuster les permissions via dcomcnfg.exe (Composants -> proprietes -> Securite) pour l'utilisateur cite.",
+    "explanation": "Une app a tente de lancer un composant DCOM sans les permissions Launch/Activation. Tres souvent benin (bruit connu).",
+    "remediation": "Generalement ignorable. Si bloquant : reperer le CLSID/APPID, ajuster via dcomcnfg.exe pour l'utilisateur cite.",
     "severity": "info",
     "links": ["https://learn.microsoft.com/troubleshoot/windows-client/application-management/event-10016-logged-when-accessing-dcom"]
   },
+  "10010": {
+    "title": "DistributedCOM — serveur n'a pas repondu (timeout)",
+    "explanation": "Un serveur DCOM ne s'est pas enregistre dans le delai imparti. Souvent benin, parfois lie a un composant lent ou manquant.",
+    "remediation": "1. Ignorer si isole. 2. Si recurrent, identifier le CLSID et le composant. 3. Reinstaller l'application liee.",
+    "severity": "warning"
+  },
   "7000": {
-    "title": "Service Control Manager — service non demarre",
-    "explanation": "Un service n'a pas pu demarrer. Cause typique : binaire manquant, dependance absente, ou compte de service invalide.",
-    "remediation": "1. Identifier le service dans le message. 2. Verifier que le binaire existe (services.msc -> proprietes -> chemin). 3. Verifier les dependances et le compte d'ouverture de session. 4. Consulter l'erreur exacte dans le detail de l'event.",
+    "title": "SCM — service non demarre",
+    "explanation": "Un service n'a pas pu demarrer (binaire manquant, dependance absente, compte invalide).",
+    "remediation": "1. Identifier le service. 2. Verifier le chemin du binaire (services.msc). 3. Verifier dependances et compte. 4. Lire l'erreur exacte.",
     "severity": "error",
     "links": ["https://learn.microsoft.com/troubleshoot/windows-server/application-management/service-not-start-events-7000-7011"]
   },
   "7001": {
-    "title": "Service Control Manager — dependance de service echouee",
-    "explanation": "Un service n'a pas demarre car un service dont il depend a echoue.",
-    "remediation": "1. Identifier le service dependant dans le message. 2. Demarrer d'abord la dependance manuellement (services.msc). 3. Corriger la cause racine de la dependance (Event 7000 associe).",
-    "severity": "error",
-    "links": ["https://learn.microsoft.com/troubleshoot/windows-server/application-management/service-not-start-events-7000-7011"]
+    "title": "SCM — dependance de service echouee",
+    "explanation": "Un service n'a pas demarre car une dependance a echoue.",
+    "remediation": "1. Identifier le service dependant. 2. Demarrer la dependance manuellement. 3. Corriger la cause racine (Event 7000).",
+    "severity": "error"
+  },
+  "7009": {
+    "title": "SCM — timeout de connexion au service",
+    "explanation": "Le SCM a attendu trop longtemps la connexion d'un service au demarrage (30 s par defaut).",
+    "remediation": "1. Verifier si le service est lent/bloque. 2. Augmenter ServicesPipeTimeout (registre) si justifie. 3. Mettre a jour le logiciel.",
+    "severity": "warning"
+  },
+  "7011": {
+    "title": "SCM — timeout de transaction de service",
+    "explanation": "Un service n'a pas repondu a temps a une requete de controle. Peut indiquer une surcharge disque/CPU.",
+    "remediation": "1. Verifier la charge systeme. 2. Mettre a jour les drivers de stockage. 3. Identifier le service lent.",
+    "severity": "warning"
+  },
+  "7023": {
+    "title": "SCM — service termine avec erreur",
+    "explanation": "Un service s'est arrete en retournant un code d'erreur.",
+    "remediation": "1. Lire le code d'erreur dans le message. 2. Verifier la config du service. 3. Consulter les logs dedies du service.",
+    "severity": "error"
+  },
+  "7031": {
+    "title": "SCM — service termine de maniere inattendue (recovery)",
+    "explanation": "Un service a plante et le SCM applique une action de recuperation (redemarrage).",
+    "remediation": "1. Identifier le service et sa frequence de crash. 2. Mettre a jour le logiciel. 3. Verifier ses dependances.",
+    "severity": "error"
   },
   "7034": {
-    "title": "Service Control Manager — service plante de maniere inattendue",
+    "title": "SCM — service plante de maniere inattendue",
     "explanation": "Un service s'est termine de facon inattendue (crash). Le message indique le nombre de plantages.",
-    "remediation": "1. Identifier le service. 2. Verifier ses logs dedies. 3. Mettre a jour le logiciel fournissant le service. 4. Configurer une action de recuperation (services.msc -> Recuperation).",
-    "severity": "error",
-    "links": ["https://learn.microsoft.com/troubleshoot/windows-server/application-management/service-not-start-events-7000-7011"]
+    "remediation": "1. Identifier le service. 2. Verifier ses logs. 3. Mettre a jour le logiciel. 4. Configurer une action de recuperation.",
+    "severity": "error"
   },
   "51": {
     "title": "Disk — erreur de pagination sur le disque",
-    "explanation": "Une erreur s'est produite lors d'une operation de pagination vers le disque. Signe avant-coureur d'un disque defaillant ou d'un cable defectueux.",
-    "remediation": "1. Sauvegarder immediatement les donnees critiques. 2. Verifier la sante du disque (SMART via CrystalDiskInfo). 3. Lancer chkdsk /f /r. 4. Verifier/remplacer le cable SATA. 5. Remplacer le disque si SMART degrade.",
+    "explanation": "Erreur lors d'une operation de pagination. Signe avant-coureur d'un disque defaillant ou d'un cable defectueux.",
+    "remediation": "1. Sauvegarder immediatement. 2. Verifier SMART (CrystalDiskInfo). 3. chkdsk /f /r. 4. Verifier le cable SATA. 5. Remplacer le disque si SMART degrade.",
     "severity": "critical",
     "links": ["https://learn.microsoft.com/windows-server/storage/disk-management/troubleshooting-disk-management"]
   },
   "55": {
     "title": "Ntfs — corruption de la structure de fichiers",
-    "explanation": "La structure du systeme de fichiers NTFS est corrompue sur un volume. Risque de perte de donnees.",
-    "remediation": "1. Sauvegarder les donnees. 2. Lancer chkdsk /f sur le volume cite (necessite redemarrage pour le volume systeme). 3. Verifier la sante du disque (SMART). 4. Si recurrent, remplacer le disque.",
+    "explanation": "La structure NTFS est corrompue sur un volume. Risque de perte de donnees.",
+    "remediation": "1. Sauvegarder. 2. chkdsk /f sur le volume cite (redemarrage si volume systeme). 3. Verifier SMART. 4. Remplacer le disque si recurrent.",
     "severity": "critical",
     "links": ["https://learn.microsoft.com/troubleshoot/windows-client/performance/troubleshoot-ntfs-corruption"]
   },
+  "98": {
+    "title": "Ntfs — operation sur volume corrompu",
+    "explanation": "Une operation a echoue car le volume presente une corruption.",
+    "remediation": "1. chkdsk /scan puis /f. 2. Sauvegarder les donnees critiques. 3. Verifier la sante du disque.",
+    "severity": "error"
+  },
+  "129": {
+    "title": "Storahci/Disk — reinitialisation du peripherique",
+    "explanation": "Le controleur de stockage a du reinitialiser le peripherique (reset to device). Latence disque, cable ou firmware SSD.",
+    "remediation": "1. Mettre a jour le firmware SSD/HDD. 2. Mettre a jour les drivers de stockage (AHCI/NVMe). 3. Verifier le cable. 4. Surveiller SMART.",
+    "severity": "warning"
+  },
+  "153": {
+    "title": "Disk — erreur d'E/S relancee",
+    "explanation": "Une requete d'E/S a echoue puis a ete relancee. Disque ou cable instable.",
+    "remediation": "1. Verifier SMART. 2. Tester un autre cable/port. 3. chkdsk /r. 4. Envisager le remplacement du disque.",
+    "severity": "warning"
+  },
+  "157": {
+    "title": "Disk — disque retire de maniere inattendue",
+    "explanation": "Un disque a ete deconnecte sans ejection propre (souvent disque externe ou cable instable).",
+    "remediation": "1. Verifier la connexion physique/cable. 2. Ejecter proprement les disques externes. 3. Verifier l'alimentation du disque.",
+    "severity": "warning"
+  },
+  "7": {
+    "title": "Disk — secteur defectueux (bad block)",
+    "explanation": "Le disque comporte un bloc defectueux a l'adresse indiquee.",
+    "remediation": "1. Sauvegarder immediatement. 2. chkdsk /r pour marquer les secteurs. 3. Remplacer le disque si les bad blocks augmentent.",
+    "severity": "critical"
+  },
+  "11": {
+    "title": "Disk — erreur de controleur",
+    "explanation": "Le controleur de disque a rencontre une erreur sur le peripherique.",
+    "remediation": "1. Verifier cables et alimentation. 2. Mettre a jour les drivers du controleur. 3. Verifier SMART.",
+    "severity": "error"
+  },
   "219": {
     "title": "Kernel-PnP — echec de chargement d'un driver",
-    "explanation": "Un pilote n'a pas pu se charger pour un peripherique. Souvent un driver obsolete, corrompu ou incompatible.",
-    "remediation": "1. Identifier le peripherique dans le Gestionnaire de peripheriques (icone d'avertissement). 2. Mettre a jour ou reinstaller le driver. 3. Desinstaller le peripherique puis rescanner le materiel. 4. Verifier la compatibilite du driver avec la version de Windows.",
+    "explanation": "Un pilote n'a pas pu se charger pour un peripherique (driver obsolete, corrompu ou incompatible).",
+    "remediation": "1. Reperer le peripherique (Gestionnaire de peripheriques). 2. Mettre a jour/reinstaller le driver. 3. Verifier la compatibilite Windows.",
     "severity": "warning",
     "links": ["https://learn.microsoft.com/windows-hardware/drivers/install/device-installation-error-codes"]
+  },
+  "1014": {
+    "title": "DNS Client — resolution de nom expiree",
+    "explanation": "La resolution DNS d'un nom a echoue (timeout). Connectivite reseau ou serveur DNS injoignable.",
+    "remediation": "1. Verifier la connexion reseau. 2. Tester nslookup. 3. Changer de serveur DNS (8.8.8.8). 4. ipconfig /flushdns.",
+    "severity": "warning"
+  },
+  "5719": {
+    "title": "NETLOGON — controleur de domaine injoignable",
+    "explanation": "Le poste n'a pas pu contacter un controleur de domaine au demarrage. Reseau pas encore pret ou DC indisponible.",
+    "remediation": "1. Verifier la connectivite au DC. 2. Verifier DNS pointant vers le DC. 3. Activer 'Toujours attendre le reseau au demarrage' (GPO).",
+    "severity": "warning"
+  },
+  "36887": {
+    "title": "Schannel — alerte fatale TLS",
+    "explanation": "Une alerte TLS fatale a ete recue lors d'une negociation securisee (handshake echoue).",
+    "remediation": "1. Souvent benin (client/serveur incompatibles). 2. Verifier les protocoles TLS actives. 3. Mettre a jour Windows et les applications.",
+    "severity": "warning"
+  },
+  "36888": {
+    "title": "Schannel — alerte fatale generee",
+    "explanation": "Schannel a genere une alerte fatale lors d'une connexion TLS.",
+    "remediation": "1. Identifier l'application concernee. 2. Verifier les suites de chiffrement et versions TLS. 3. Mettre a jour les certificats.",
+    "severity": "warning"
+  },
+  "1": {
+    "title": "Evenement generique (provider specifique)",
+    "explanation": "Event ID 1 — la signification depend entierement du provider (source). Lire le message et la source.",
+    "remediation": "1. Identifier la source. 2. Rechercher 'source + Event ID 1' sur Microsoft Learn. 3. Traiter selon le composant concerne.",
+    "severity": "info"
+  },
+  "14": {
+    "title": "Disk/GPU — erreur de peripherique (provider specifique)",
+    "explanation": "Event ID 14 — depend du provider (souvent stockage ou affichage). Lire la source.",
+    "remediation": "1. Identifier la source. 2. Mettre a jour le driver concerne. 3. Verifier le materiel associe.",
+    "severity": "warning"
+  },
+  "1079": {
+    "title": "Application — fuite ou saturation memoire",
+    "explanation": "Une application consomme une quantite anormale de memoire/handles.",
+    "remediation": "1. Identifier le processus. 2. Mettre a jour l'application. 3. Surveiller via Moniteur de ressources.",
+    "severity": "warning"
+  },
+  "609": {
+    "title": "Application Popup / pilote",
+    "explanation": "Une notification systeme ou erreur de pilote a ete emise.",
+    "remediation": "1. Lire le message complet. 2. Mettre a jour le pilote concerne.",
+    "severity": "info"
+  },
+  "1033": {
+    "title": "MsiInstaller — installation terminee",
+    "explanation": "Resultat d'une installation/desinstallation MSI. Le code de retour indique succes (0) ou echec.",
+    "remediation": "Si echec : lire le code MSI, relancer avec journalisation (msiexec /i pkg /l*v log.txt).",
+    "severity": "info"
+  },
+  "11707": {
+    "title": "MsiInstaller — installation reussie",
+    "explanation": "Une installation MSI s'est terminee avec succes. Informatif.",
+    "remediation": "Aucune action.",
+    "severity": "info"
+  },
+  "11708": {
+    "title": "MsiInstaller — installation echouee",
+    "explanation": "Une installation MSI a echoue et a ete annulee (rollback).",
+    "remediation": "1. Relancer avec log verbeux (msiexec /i pkg /l*v log.txt). 2. Lire l'erreur dans le log. 3. Verifier prerequis et permissions.",
+    "severity": "error"
+  },
+  "490": {
+    "title": "ESENT — erreur base de donnees",
+    "explanation": "Le moteur ESENT (utilise par Windows Update, AD, etc.) a rencontre une erreur d'acces a une base.",
+    "remediation": "1. Identifier la base concernee dans le message. 2. Pour Windows Update : reinitialiser SoftwareDistribution. 3. chkdsk si corruption disque.",
+    "severity": "warning"
+  },
+  "455": {
+    "title": "ESENT — impossible d'ouvrir/creer un fichier",
+    "explanation": "ESENT n'a pas pu ouvrir ou creer un fichier de base de donnees (permissions ou disque).",
+    "remediation": "1. Verifier l'espace disque. 2. Verifier les permissions du dossier. 3. Reinitialiser le composant concerne.",
+    "severity": "warning"
+  },
+  "4": {
+    "title": "Kerberos / NIC (provider specifique)",
+    "explanation": "Event ID 4 — depend du provider. Souvent Kerberos (erreur de ticket) ou carte reseau.",
+    "remediation": "1. Identifier la source. 2. Kerberos : verifier la synchro horaire (w32tm) et les SPN. 3. NIC : mettre a jour le driver.",
+    "severity": "warning"
+  },
+  "27": {
+    "title": "Carte reseau — lien/initialisation",
+    "explanation": "Evenement de carte reseau (perte de lien, init driver). Cable, driver ou economie d'energie.",
+    "remediation": "1. Verifier le cable/Wi-Fi. 2. Mettre a jour le driver reseau. 3. Desactiver l'economie d'energie de la carte.",
+    "severity": "info"
   }
 }

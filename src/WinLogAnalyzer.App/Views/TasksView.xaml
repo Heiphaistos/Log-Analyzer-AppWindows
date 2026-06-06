@@ -1,0 +1,140 @@
+<UserControl x:Class="WinLogAnalyzer.App.Views.TasksView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:inf="clr-namespace:WinLogAnalyzer.App.Infrastructure"
+             Background="{StaticResource Bg}">
+
+    <UserControl.Resources>
+        <inf:SeverityToBrushConverter x:Key="SevBrush" />
+        <inf:NullToVisibilityConverter x:Key="NullVis" />
+        <BooleanToVisibilityConverter x:Key="BoolVis" />
+
+        <DataTemplate x:Key="TaskTemplate">
+            <Border Background="{StaticResource BgCard}" CornerRadius="12" BorderThickness="1"
+                    BorderBrush="{StaticResource Border}" Margin="0,0,0,12">
+                <Grid>
+                    <Border Width="4" HorizontalAlignment="Left" CornerRadius="12,0,0,12"
+                            Background="{Binding DisplayLevel, Converter={StaticResource SevBrush}}" />
+                    <StackPanel Margin="16,0,0,0">
+                        <ToggleButton IsChecked="{Binding IsExpanded, Mode=TwoWay}" Cursor="Hand"
+                                      Background="Transparent" BorderThickness="0">
+                            <ToggleButton.Template>
+                                <ControlTemplate TargetType="ToggleButton">
+                                    <Border Background="Transparent" Padding="16,14">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding LastResultHex}" FontWeight="Bold"
+                                                       FontFamily="Consolas" FontSize="13" MinWidth="92"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{Binding DisplayLevel, Converter={StaticResource SevBrush}}" />
+                                            <StackPanel Grid.Column="1" Margin="8,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{Binding MetaLine}" Foreground="{StaticResource TextDim}"
+                                                           FontSize="12" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="2" x:Name="chev" Text="&#x25B6;"
+                                                       Foreground="{StaticResource TextDim}" VerticalAlignment="Center" FontSize="12" />
+                                        </Grid>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsChecked" Value="True">
+                                            <Setter TargetName="chev" Property="Text" Value="&#x25BC;" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </ToggleButton.Template>
+                        </ToggleButton>
+
+                        <StackPanel Margin="16,0,16,16"
+                                    Visibility="{Binding IsExpanded, Converter={StaticResource BoolVis}}">
+                            <Border Height="1" Background="{StaticResource Border}" Margin="0,0,0,14" />
+                            <TextBlock Text="CHEMIN" Style="{StaticResource FieldLabel}" />
+                            <TextBlock Text="{Binding Path}" FontFamily="Consolas" FontSize="12"
+                                       Foreground="{StaticResource TextDim}" TextWrapping="Wrap" />
+                            <TextBlock Text="DESCRIPTION" Style="{StaticResource FieldLabel}" Margin="0,12,0,5"
+                                       Visibility="{Binding Description, Converter={StaticResource NullVis}}" />
+                            <TextBlock Text="{Binding Description}" FontSize="13" TextWrapping="Wrap"
+                                       Visibility="{Binding Description, Converter={StaticResource NullVis}}" />
+
+                            <Border Margin="0,14,0,0" CornerRadius="10" Padding="16" Background="#1A2433"
+                                    BorderBrush="#2D4763" BorderThickness="1"
+                                    Visibility="{Binding Solution, Converter={StaticResource NullVis}}">
+                                <StackPanel>
+                                    <TextBlock Foreground="#4CC4FF" FontWeight="Bold" FontSize="14"
+                                               Text="{Binding Solution.Title}" />
+                                    <TextBlock Text="EXPLICATION" Style="{StaticResource FieldLabel}" Margin="0,12,0,5" />
+                                    <TextBlock Text="{Binding Solution.Explanation}" FontSize="13" TextWrapping="Wrap" LineHeight="20" />
+                                    <TextBlock Text="REMEDIATION" Style="{StaticResource FieldLabel}" Margin="0,12,0,5" />
+                                    <TextBlock Text="{Binding Solution.Remediation}" FontSize="13" TextWrapping="Wrap" LineHeight="22" />
+                                </StackPanel>
+                            </Border>
+                            <TextBlock Margin="0,14,0,0" FontSize="13" FontStyle="Italic" Foreground="{StaticResource TextDim}"
+                                       TextWrapping="Wrap" Text="Code de resultat non repertorie. Ajoute-le dans data/taskcodes.json."
+                                       Visibility="{Binding Solution, Converter={StaticResource NullVis}, ConverterParameter=invert}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="28,18,28,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                <TextBlock Text="FILTRE" Style="{StaticResource FieldLabel}" />
+                <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+            <CheckBox Grid.Column="1" Content="Echecs uniquement" IsChecked="{Binding FailuresOnly}"
+                      VerticalAlignment="Bottom" Margin="0,0,16,10" />
+            <Button Grid.Column="2" Content="Actualiser" VerticalAlignment="Bottom"
+                    Style="{StaticResource PrimaryButton}" Command="{Binding RefreshCommand}" />
+        </Grid>
+
+        <ListBox Grid.Row="1" Margin="28,4,28,4" Background="Transparent" BorderThickness="0"
+                 ItemsSource="{Binding TasksView}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 VirtualizingPanel.IsVirtualizing="True"
+                 VirtualizingPanel.VirtualizationMode="Recycling"
+                 ItemTemplate="{StaticResource TaskTemplate}">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem"><ContentPresenter /></ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListBox.ItemContainerStyle>
+        </ListBox>
+
+        <Border Grid.Row="2" Background="{StaticResource BgElev}" BorderBrush="{StaticResource Border}"
+                BorderThickness="0,1,0,0" Padding="28,10">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="&#x25CF;" Foreground="{StaticResource Solved}" FontSize="10" VerticalAlignment="Center"
+                           Margin="0,0,8,0" Visibility="{Binding IsNotLoading, Converter={StaticResource BoolVis}}" />
+                <TextBlock Text="&#x231B;" Foreground="{StaticResource Accent}" FontSize="12" VerticalAlignment="Center"
+                           Margin="0,0,8,0" Visibility="{Binding IsLoading, Converter={StaticResource BoolVis}}" />
+                <TextBlock Text="{Binding StatusText}" Foreground="{StaticResource TextDim}" FontSize="13" VerticalAlignment="Center" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>
