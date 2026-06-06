@@ -3,7 +3,13 @@ using WinLogAnalyzer.Core.Knowledge;
 using WinLogAnalyzer.Core.Process;
 using WinLogAnalyzer.Core.Reader;
 
-var builder = WebApplication.CreateBuilder(args);
+// ContentRoot force sur le dossier du binaire : le process eleve (RunAs) demarre
+// avec cwd = System32, sinon wwwroot/ serait introuvable (404 sur le dashboard).
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    ContentRootPath = AppContext.BaseDirectory
+});
 
 // Agent local : bind 127.0.0.1 uniquement. Jamais expose sur le reseau (logs sensibles).
 const string Url = "http://127.0.0.1:5099";
