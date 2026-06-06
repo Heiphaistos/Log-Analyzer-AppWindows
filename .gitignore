@@ -1,0 +1,17 @@
+# Build
+bin/
+obj/
+dist/
+*.user
+
+# Logs
+.logs/
+
+# IDE
+.vs/
+.idea/
+*.suo
+
+# OS
+Thumbs.db
+desktop.ini

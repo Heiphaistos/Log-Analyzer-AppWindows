@@ -1,0 +1,86 @@
+{
+  "41": {
+    "title": "Kernel-Power — arret inattendu du systeme",
+    "explanation": "Le systeme a redemarre sans s'arreter proprement. Cause typique : coupure d'alimentation, surchauffe, instabilite materielle (RAM/PSU/carte mere) ou crash de driver.",
+    "remediation": "1. Verifier l'alimentation et les temperatures (HWMonitor). 2. Tester la RAM via mdsched.exe. 3. Mettre a jour les drivers chipset/GPU. 4. Desactiver le demarrage rapide (Options d'alimentation) si recurrent. 5. Verifier le journal pour un Event 1001 (BugCheck) associe.",
+    "severity": "critical",
+    "links": ["https://learn.microsoft.com/troubleshoot/windows-client/performance/event-id-41-restart"]
+  },
+  "6008": {
+    "title": "EventLog — arret precedent inattendu",
+    "explanation": "Windows signale que l'arret precedent du systeme etait inattendu (plante ou coupure). Complement frequent de l'Event 41.",
+    "remediation": "1. Correler avec l'Event 41 et 1001 a la meme heure. 2. Analyser le dernier minidump (C:\\Windows\\Minidump) avec WinDbg ou BlueScreenView. 3. Verifier disque (chkdsk) et alimentation.",
+    "severity": "warning",
+    "links": ["https://learn.microsoft.com/troubleshoot/windows-client/performance/event-id-41-restart"]
+  },
+  "1001": {
+    "title": "BugCheck — ecran bleu (BSOD)",
+    "explanation": "Un crash noyau (BSOD) s'est produit. Le code d'arret (ex: 0x0000007E) et le module fautif sont indiques dans le message.",
+    "remediation": "1. Noter le code d'arret dans le message. 2. Analyser le minidump avec WinDbg (!analyze -v). 3. Mettre a jour ou rollback le driver cite. 4. Tester RAM (mdsched.exe) et disque (chkdsk /f).",
+    "severity": "critical",
+    "links": ["https://learn.microsoft.com/windows-hardware/drivers/debugger/bug-check-code-reference2"]
+  },
+  "1000": {
+    "title": "Application Error — crash applicatif",
+    "explanation": "Une application s'est arretee de maniere inattendue (exception non geree). Le message indique le module fautif (faulting module).",
+    "remediation": "1. Identifier l'application et le module fautif dans le message. 2. Mettre a jour l'application. 3. Reparer le runtime (.NET/VC++ Redistributable) si le module est un .dll systeme. 4. Lancer sfc /scannow si un fichier systeme est en cause.",
+    "severity": "error",
+    "links": ["https://learn.microsoft.com/troubleshoot/windows-client/application-management/application-crash-or-hang"]
+  },
+  "1002": {
+    "title": "Application Hang — application figee",
+    "explanation": "Une application a cesse de repondre et a ete arretee. Souvent du a un blocage (deadlock), une attente reseau ou une ressource saturee.",
+    "remediation": "1. Verifier la charge CPU/RAM/disque au moment du blocage. 2. Mettre a jour l'application. 3. Desactiver les modules complementaires (addons) suspects. 4. Verifier l'acces reseau si l'app depend d'un service distant.",
+    "severity": "error",
+    "links": ["https://learn.microsoft.com/troubleshoot/windows-client/application-management/application-crash-or-hang"]
+  },
+  "10016": {
+    "title": "DistributedCOM — permissions DCOM manquantes",
+    "explanation": "Une app a tente de lancer un composant DCOM sans les permissions Launch/Activation. Tres souvent benin (bruit Windows connu).",
+    "remediation": "Generalement ignorable. Si bloquant : reperer le CLSID/APPID dans le message, ajuster les permissions via dcomcnfg.exe (Composants -> proprietes -> Securite) pour l'utilisateur cite.",
+    "severity": "info",
+    "links": ["https://learn.microsoft.com/troubleshoot/windows-client/application-management/event-10016-logged-when-accessing-dcom"]
+  },
+  "7000": {
+    "title": "Service Control Manager — service non demarre",
+    "explanation": "Un service n'a pas pu demarrer. Cause typique : binaire manquant, dependance absente, ou compte de service invalide.",
+    "remediation": "1. Identifier le service dans le message. 2. Verifier que le binaire existe (services.msc -> proprietes -> chemin). 3. Verifier les dependances et le compte d'ouverture de session. 4. Consulter l'erreur exacte dans le detail de l'event.",
+    "severity": "error",
+    "links": ["https://learn.microsoft.com/troubleshoot/windows-server/application-management/service-not-start-events-7000-7011"]
+  },
+  "7001": {
+    "title": "Service Control Manager — dependance de service echouee",
+    "explanation": "Un service n'a pas demarre car un service dont il depend a echoue.",
+    "remediation": "1. Identifier le service dependant dans le message. 2. Demarrer d'abord la dependance manuellement (services.msc). 3. Corriger la cause racine de la dependance (Event 7000 associe).",
+    "severity": "error",
+    "links": ["https://learn.microsoft.com/troubleshoot/windows-server/application-management/service-not-start-events-7000-7011"]
+  },
+  "7034": {
+    "title": "Service Control Manager — service plante de maniere inattendue",
+    "explanation": "Un service s'est termine de facon inattendue (crash). Le message indique le nombre de plantages.",
+    "remediation": "1. Identifier le service. 2. Verifier ses logs dedies. 3. Mettre a jour le logiciel fournissant le service. 4. Configurer une action de recuperation (services.msc -> Recuperation).",
+    "severity": "error",
+    "links": ["https://learn.microsoft.com/troubleshoot/windows-server/application-management/service-not-start-events-7000-7011"]
+  },
+  "51": {
+    "title": "Disk — erreur de pagination sur le disque",
+    "explanation": "Une erreur s'est produite lors d'une operation de pagination vers le disque. Signe avant-coureur d'un disque defaillant ou d'un cable defectueux.",
+    "remediation": "1. Sauvegarder immediatement les donnees critiques. 2. Verifier la sante du disque (SMART via CrystalDiskInfo). 3. Lancer chkdsk /f /r. 4. Verifier/remplacer le cable SATA. 5. Remplacer le disque si SMART degrade.",
+    "severity": "critical",
+    "links": ["https://learn.microsoft.com/windows-server/storage/disk-management/troubleshooting-disk-management"]
+  },
+  "55": {
+    "title": "Ntfs — corruption de la structure de fichiers",
+    "explanation": "La structure du systeme de fichiers NTFS est corrompue sur un volume. Risque de perte de donnees.",
+    "remediation": "1. Sauvegarder les donnees. 2. Lancer chkdsk /f sur le volume cite (necessite redemarrage pour le volume systeme). 3. Verifier la sante du disque (SMART). 4. Si recurrent, remplacer le disque.",
+    "severity": "critical",
+    "links": ["https://learn.microsoft.com/troubleshoot/windows-client/performance/troubleshoot-ntfs-corruption"]
+  },
+  "219": {
+    "title": "Kernel-PnP — echec de chargement d'un driver",
+    "explanation": "Un pilote n'a pas pu se charger pour un peripherique. Souvent un driver obsolete, corrompu ou incompatible.",
+    "remediation": "1. Identifier le peripherique dans le Gestionnaire de peripheriques (icone d'avertissement). 2. Mettre a jour ou reinstaller le driver. 3. Desinstaller le peripherique puis rescanner le materiel. 4. Verifier la compatibilite du driver avec la version de Windows.",
+    "severity": "warning",
+    "links": ["https://learn.microsoft.com/windows-hardware/drivers/install/device-installation-error-codes"]
+  }
+}

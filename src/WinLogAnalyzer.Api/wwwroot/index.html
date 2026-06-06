@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WinLog Analyzer — Observateur d'evenements</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand__logo">⚡</span>
+      <div>
+        <h1 class="brand__title">WinLog Analyzer</h1>
+        <p class="brand__sub">Erreurs critiques &amp; remediation — agent local</p>
+      </div>
+    </div>
+    <div class="topbar__status" id="health">
+      <span class="dot dot--idle"></span><span id="health-text">Connexion…</span>
+    </div>
+  </header>
+
+  <section class="controls">
+    <div class="field">
+      <label for="log">Journal</label>
+      <select id="log">
+        <option value="System">System</option>
+        <option value="Application">Application</option>
+        <option value="Security">Security (admin)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="max">Nombre max</label>
+      <input type="number" id="max" value="100" min="1" max="1000" />
+    </div>
+    <div class="field">
+      <label for="search">Filtre</label>
+      <input type="text" id="search" placeholder="ID, source, message…" />
+    </div>
+    <button id="refresh" class="btn btn--primary">Analyser</button>
+  </section>
+
+  <section class="stats" id="stats"></section>
+
+  <main class="results" id="results">
+    <div class="placeholder">Lance une analyse pour afficher les erreurs.</div>
+  </main>
+
+  <footer class="footer">
+    <span>127.0.0.1:5099 — donnees locales, jamais transmises sur le reseau.</span>
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
