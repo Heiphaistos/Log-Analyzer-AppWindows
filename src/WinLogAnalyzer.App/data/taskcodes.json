@@ -1,63 +1,213 @@
 {
+  "0x00000000": {
+    "title": "Succes (0x0)",
+    "explanation": "La tache s'est terminee avec succes. La derniere action a retourne le code 0.",
+    "remediation": "Aucune action.",
+    "severity": "info"
+  },
   "0x00000001": {
-    "title": "Fonction incorrecte / erreur generale",
-    "explanation": "La tache s'est terminee avec une erreur generique (0x1). Souvent un script ou programme appele qui retourne un code d'erreur non nul.",
-    "remediation": "1. Ouvrir l'action de la tache (Planificateur -> proprietes -> Actions). 2. Executer manuellement la commande pour voir l'erreur reelle. 3. Verifier les chemins et arguments.",
+    "title": "Fonction incorrecte / erreur generale (0x1)",
+    "explanation": "La tache s'est terminee avec une erreur generique. Le programme ou script appele a retourne le code de sortie 1.",
+    "remediation": "1. Ouvrir Planificateur -> proprietes -> Actions. 2. Executer manuellement la commande/script pour voir l'erreur reelle. 3. Verifier chemins, arguments et droits.",
     "severity": "error"
   },
   "0x00000002": {
     "title": "Fichier introuvable (0x2)",
-    "explanation": "Le programme ou script declenche par la tache n'existe pas au chemin indique.",
-    "remediation": "1. Verifier le chemin du programme dans l'onglet Actions. 2. Corriger le chemin (espaces -> guillemets). 3. Verifier que le fichier n'a pas ete deplace/supprime.",
+    "explanation": "Le programme ou script declenche n'existe pas au chemin indique.",
+    "remediation": "1. Verifier le chemin dans l'onglet Actions. 2. Mettre les chemins avec espaces entre guillemets. 3. Verifier que le fichier n'a pas ete deplace.",
+    "severity": "error"
+  },
+  "0x00000003": {
+    "title": "Chemin introuvable (0x3)",
+    "explanation": "Le dossier specifie (programme ou 'Demarrer dans') n'existe pas.",
+    "remediation": "1. Corriger le repertoire de travail dans Actions. 2. Verifier l'existence du dossier cible.",
     "severity": "error"
   },
   "0x0000000A": {
     "title": "Environnement incorrect (0xA)",
-    "explanation": "Erreur d'environnement lors du lancement (variables, repertoire de travail).",
-    "remediation": "1. Definir le 'Demarrer dans' (repertoire de travail) dans l'action. 2. Verifier les variables d'environnement requises.",
+    "explanation": "Erreur d'environnement au lancement (variables, repertoire de travail manquant).",
+    "remediation": "1. Definir 'Demarrer dans' (repertoire de travail). 2. Verifier les variables d'environnement requises.",
     "severity": "warning"
   },
+  "0x00000041": {
+    "title": "Reseau / acces refuse (0x41)",
+    "explanation": "Le compte n'a pas le droit d'acces reseau requis (ERROR_NETWORK_ACCESS_DENIED).",
+    "remediation": "1. Verifier les permissions reseau du compte d'execution. 2. Utiliser un compte avec les droits adequats.",
+    "severity": "error"
+  },
+  "0x00000420": {
+    "title": "Instance deja active (0x420)",
+    "explanation": "Le service/processus de la tache est deja en cours (ERROR_SERVICE_ALREADY_RUNNING).",
+    "remediation": "1. Verifier l'instance precedente. 2. Regle 'Si la tache est deja en cours' dans Parametres.",
+    "severity": "info"
+  },
+  "0x000000FF": {
+    "title": "Echec de script (0xFF / code 255)",
+    "explanation": "Le script (PowerShell, batch) s'est termine avec le code 255, signe d'une erreur non geree dans le script.",
+    "remediation": "1. Executer le script manuellement. 2. Ajouter une gestion d'erreur/log dans le script. 3. Verifier les prerequis du script.",
+    "severity": "error"
+  },
+  "0x00000102": {
+    "title": "Delai expire / toujours en cours (0x102)",
+    "explanation": "WAIT_TIMEOUT : l'action n'a pas fini dans le delai, ou la tache tourne encore.",
+    "remediation": "1. Verifier si l'action est bloquee. 2. Augmenter le delai d'expiration dans Parametres. 3. Optimiser le script.",
+    "severity": "warning"
+  },
+  "0x00041300": {
+    "title": "Tache prete (0x41300)",
+    "explanation": "La tache est prete a s'executer (SCHED_S_TASK_READY). Etat normal.",
+    "remediation": "Aucune action.",
+    "severity": "info"
+  },
   "0x00041301": {
-    "title": "Tache en cours d'execution",
-    "explanation": "La tache est actuellement en cours (0x41301). Etat normal, pas une erreur.",
-    "remediation": "Aucune action. Attendre la fin de l'execution.",
+    "title": "Tache en cours d'execution (0x41301)",
+    "explanation": "La tache est actuellement en cours. Etat normal, pas une erreur.",
+    "remediation": "Aucune action. Attendre la fin.",
     "severity": "info"
   },
   "0x00041302": {
-    "title": "Tache desactivee",
-    "explanation": "La tache est desactivee (0x41302) et ne se declenchera pas.",
-    "remediation": "Si elle doit s'executer : Planificateur -> clic droit -> Activer.",
+    "title": "Tache desactivee (0x41302)",
+    "explanation": "La tache est desactivee et ne se declenchera pas.",
+    "remediation": "Si elle doit tourner : clic droit -> Activer.",
     "severity": "info"
   },
   "0x00041303": {
-    "title": "Tache jamais executee",
-    "explanation": "La tache n'a encore jamais ete declenchee (0x41303).",
-    "remediation": "Verifier les declencheurs (Triggers). Tester via clic droit -> Executer.",
+    "title": "Tache jamais executee (0x41303)",
+    "explanation": "La tache n'a encore jamais ete declenchee.",
+    "remediation": "Verifier les declencheurs. Tester via clic droit -> Executer.",
+    "severity": "info"
+  },
+  "0x00041304": {
+    "title": "Plus d'execution prevue (0x41304)",
+    "explanation": "SCHED_S_TASK_NO_MORE_RUNS : aucun declencheur futur.",
+    "remediation": "Ajouter/mettre a jour un declencheur si la tache doit continuer.",
+    "severity": "info"
+  },
+  "0x00041305": {
+    "title": "Tache non planifiee (0x41305)",
+    "explanation": "SCHED_S_TASK_NOT_SCHEDULED : pas de declencheur valide.",
+    "remediation": "Definir un declencheur dans l'onglet Declencheurs.",
     "severity": "info"
   },
   "0x00041306": {
-    "title": "Tache arretee par l'utilisateur",
-    "explanation": "La tache a ete terminee manuellement (0x41306).",
-    "remediation": "Aucune action si volontaire.",
+    "title": "Tache arretee par l'utilisateur (0x41306)",
+    "explanation": "SCHED_S_TASK_TERMINATED : la tache a ete terminee manuellement ou par une regle.",
+    "remediation": "Aucune action si volontaire. Sinon verifier le delai d'arret.",
     "severity": "info"
   },
+  "0x00041307": {
+    "title": "Aucun declencheur horaire (0x41307)",
+    "explanation": "SCHED_S_TASK_NO_VALID_TRIGGERS : la tache n'a pas de declencheur temporel valide.",
+    "remediation": "Recreer un declencheur valide.",
+    "severity": "warning"
+  },
+  "0x00041308": {
+    "title": "Evenement declencheur (0x41308)",
+    "explanation": "SCHED_S_EVENT_TRIGGER : la tache est pilotee par evenement.",
+    "remediation": "Aucune action. Comportement normal.",
+    "severity": "info"
+  },
+  "0x0004131B": {
+    "title": "Tache mal configuree (0x4131B)",
+    "explanation": "SCHED_S_TASK_NO_VALID_TRIGGERS / config incomplete : il manque des informations requises.",
+    "remediation": "Verifier action, declencheur et compte d'execution.",
+    "severity": "warning"
+  },
+  "0x800710E0": {
+    "title": "Conditions non remplies — execution refusee (0x800710E0)",
+    "explanation": "ERROR_OPERATOR_OR_ADMINISTRATOR_HAS_REFUSED_THE_REQUEST. La tache ne s'est pas lancee car une condition n'etait pas remplie : 'Demarrer seulement sur secteur', 'seulement si inactif', ou refus de session. Tres frequent et generalement benin.",
+    "remediation": "1. Onglet Conditions : decocher 'Demarrer la tache seulement si l'ordinateur est sur secteur' si besoin. 2. Ajuster la condition d'inactivite. 3. Ignorer si la tache n'est pas critique.",
+    "severity": "info"
+  },
+  "0x80010002": {
+    "title": "Appel COM annule (0x80010002)",
+    "explanation": "RPC_E_CALL_CANCELED : un appel COM a ete annule (souvent timeout ou arret).",
+    "remediation": "1. Souvent transitoire. 2. Relancer la tache. 3. Verifier la charge systeme au moment de l'execution.",
+    "severity": "warning"
+  },
+  "0x80040154": {
+    "title": "Classe COM non enregistree (0x80040154)",
+    "explanation": "REGDB_E_CLASSNOTREG : la tache appelle un composant COM dont la classe n'est pas enregistree (DLL manquante ou non inscrite).",
+    "remediation": "1. Identifier le composant. 2. Reinstaller/reparer le logiciel concerne. 3. Re-enregistrer la DLL (regsvr32). 4. Verifier architecture 32/64 bits.",
+    "severity": "error"
+  },
+  "0x80041309": {
+    "title": "Declencheur introuvable (0x80041309)",
+    "explanation": "Le declencheur de la tache est introuvable ou invalide.",
+    "remediation": "Recreer le declencheur dans l'onglet Declencheurs.",
+    "severity": "warning"
+  },
+  "0x8004130F": {
+    "title": "Aucune info de compte (0x8004130F)",
+    "explanation": "SCHED_E_ACCOUNT_INFORMATION_NOT_SET : le compte d'execution n'a pas de mot de passe/identifiants enregistres.",
+    "remediation": "1. Proprietes -> General -> renseigner le compte et le mot de passe. 2. Ou 'Ne pas stocker le mot de passe' avec droits adaptes.",
+    "severity": "error"
+  },
+  "0x80041310": {
+    "title": "Compte refuse (0x80041310)",
+    "explanation": "SCHED_E_ACCOUNT_DBASE_CORRUPT / refus : probleme avec le compte d'execution.",
+    "remediation": "Reconfigurer le compte d'execution de la tache.",
+    "severity": "error"
+  },
+  "0x80041314": {
+    "title": "Tache desactivee (0x80041314)",
+    "explanation": "SCHED_E_TASK_DISABLED : la tache est desactivee.",
+    "remediation": "Clic droit -> Activer si necessaire.",
+    "severity": "info"
+  },
+  "0x80041315": {
+    "title": "Service Planificateur non disponible (0x80041315)",
+    "explanation": "SCHED_E_SERVICE_NOT_RUNNING : le service Planificateur de taches n'est pas en cours.",
+    "remediation": "Demarrer le service 'Planificateur de taches' (services.msc).",
+    "severity": "error"
+  },
+  "0x80041316": {
+    "title": "Definition de tache invalide (0x80041316)",
+    "explanation": "SCHED_E_UNEXPECTEDNODE / XML malforme : la definition de la tache est corrompue.",
+    "remediation": "1. Exporter, corriger ou recreer la tache. 2. Supprimer et re-creer si corruption persistante.",
+    "severity": "error"
+  },
   "0x8004131F": {
-    "title": "Instance deja en cours",
-    "explanation": "Une instance de la tache tourne deja et la regle interdit les executions paralleles (0x8004131F).",
-    "remediation": "1. Verifier pourquoi l'instance precedente ne se termine pas. 2. Ajuster la regle 'Si la tache est deja en cours' dans Parametres.",
+    "title": "Instance deja en cours (0x8004131F)",
+    "explanation": "SCHED_E_INSTANCE_NOT_RUNNING / instance deja active : la regle interdit les executions paralleles.",
+    "remediation": "1. Verifier pourquoi l'instance precedente ne finit pas. 2. Ajuster 'Si la tache est deja en cours' dans Parametres.",
     "severity": "warning"
   },
   "0x80070002": {
     "title": "Fichier introuvable (0x80070002)",
-    "explanation": "Le systeme ne trouve pas le fichier specifie par l'action de la tache.",
-    "remediation": "1. Corriger le chemin du programme/script. 2. Mettre les chemins avec espaces entre guillemets. 3. Verifier les droits d'acces au dossier.",
+    "explanation": "Le systeme ne trouve pas le fichier de l'action de la tache.",
+    "remediation": "1. Corriger le chemin du programme/script. 2. Chemins avec espaces entre guillemets. 3. Verifier les droits d'acces.",
+    "severity": "error"
+  },
+  "0x80070003": {
+    "title": "Chemin introuvable (0x80070003)",
+    "explanation": "ERROR_PATH_NOT_FOUND : le dossier de l'action n'existe pas.",
+    "remediation": "1. Corriger le repertoire dans Actions. 2. Verifier le 'Demarrer dans'.",
     "severity": "error"
   },
   "0x80070005": {
     "title": "Acces refuse (0x80070005)",
-    "explanation": "La tache n'a pas les permissions pour executer l'action (droits insuffisants du compte).",
-    "remediation": "1. Onglet General -> 'Executer avec les autorisations maximales'. 2. Verifier le compte d'execution. 3. Verifier les ACL du fichier cible.",
+    "explanation": "La tache n'a pas les permissions pour son action (droits insuffisants du compte).",
+    "remediation": "1. Onglet General -> 'Executer avec les autorisations maximales'. 2. Verifier le compte. 3. Verifier les ACL du fichier cible.",
     "severity": "error"
+  },
+  "0x80070020": {
+    "title": "Fichier verrouille (0x80070020)",
+    "explanation": "ERROR_SHARING_VIOLATION : le fichier cible est utilise par un autre processus.",
+    "remediation": "1. Identifier le processus qui verrouille (Resource Monitor). 2. Planifier la tache quand le fichier est libre.",
+    "severity": "warning"
+  },
+  "0x80070057": {
+    "title": "Parametre invalide (0x80070057)",
+    "explanation": "ERROR_INVALID_PARAMETER : un argument passe a l'action est invalide.",
+    "remediation": "Verifier les arguments de la ligne de commande dans Actions.",
+    "severity": "error"
+  },
+  "0x800704C7": {
+    "title": "Operation annulee (0x800704C7)",
+    "explanation": "ERROR_CANCELLED : l'operation a ete annulee par l'utilisateur ou le systeme.",
+    "remediation": "Relancer si l'annulation etait involontaire.",
+    "severity": "info"
   },
   "0x800704DD": {
     "title": "Utilisateur non connecte (0x800704DD)",
@@ -65,16 +215,70 @@
     "remediation": "Onglet General -> 'Executer meme si l'utilisateur n'est pas connecte'.",
     "severity": "warning"
   },
-  "0x80041309": {
-    "title": "Declencheur introuvable (0x80041309)",
-    "explanation": "Le declencheur de la tache n'a pas ete trouve ou est invalide.",
-    "remediation": "Recreer le declencheur dans l'onglet Declencheurs.",
+  "0x800705B4": {
+    "title": "Delai d'attente depasse (0x800705B4)",
+    "explanation": "ERROR_TIMEOUT : l'action n'a pas repondu dans le temps imparti.",
+    "remediation": "1. Augmenter le delai. 2. Verifier les dependances lentes (reseau, disque).",
     "severity": "warning"
   },
-  "0xC000013A": {
-    "title": "Arret force (Ctrl+C / arret application)",
-    "explanation": "Le processus de la tache a ete termine par un signal d'arret (0xC000013A).",
-    "remediation": "Verifier si un arret systeme ou un timeout a interrompu la tache. Augmenter le delai si necessaire.",
+  "0x80070420": {
+    "title": "Service introuvable / desactive (0x80070420)",
+    "explanation": "Le service requis par la tache est introuvable ou desactive.",
+    "remediation": "Verifier et activer le service concerne (services.msc).",
+    "severity": "error"
+  },
+  "0x8007042B": {
+    "title": "Processus enfant termine de facon inattendue (0x8007042B)",
+    "explanation": "ERROR_PROCESS_ABORTED : le processus lance par la tache s'est arrete de maniere inattendue.",
+    "remediation": "1. Verifier les logs du programme. 2. Mettre a jour le logiciel. 3. Tester l'execution manuelle.",
+    "severity": "error"
+  },
+  "0x80070652": {
+    "title": "Installation en cours (0x80070652)",
+    "explanation": "ERROR_INSTALL_ALREADY_RUNNING : une autre installation MSI bloque l'action.",
+    "remediation": "Attendre la fin de l'installation en cours puis relancer.",
     "severity": "warning"
+  },
+  "0x800F0806": {
+    "title": "Operation CBS en attente (0x800F0806)",
+    "explanation": "CBS_E_PENDING : une operation de servicing Windows (mises a jour/composants) est en attente, souvent un redemarrage requis.",
+    "remediation": "1. Redemarrer le PC pour finaliser les operations en attente. 2. Relancer la tache apres redemarrage.",
+    "severity": "warning"
+  },
+  "0x10000000": {
+    "title": "Code applicatif non standard (0x10000000)",
+    "explanation": "Ce n'est pas un code d'erreur Windows : c'est une valeur retournee par le programme de la tache. Sa signification depend de l'application.",
+    "remediation": "1. Consulter la documentation de l'application. 2. Executer l'action manuellement pour observer le comportement. 3. Souvent benin pour les taches Microsoft de maintenance.",
+    "severity": "info"
+  },
+  "0xC0000142": {
+    "title": "Echec d'initialisation d'application (0xC0000142)",
+    "explanation": "STATUS_DLL_INIT_FAILED : une DLL requise n'a pas pu s'initialiser.",
+    "remediation": "1. Reparer le runtime (VC++ Redistributable, .NET). 2. sfc /scannow. 3. Reinstaller l'application.",
+    "severity": "error"
+  },
+  "0xC000013A": {
+    "title": "Arret force (Ctrl+C / arret) (0xC000013A)",
+    "explanation": "STATUS_CONTROL_C_EXIT : le processus a ete termine par un signal d'arret (souvent arret systeme ou timeout).",
+    "remediation": "Verifier si un arret/timeout a interrompu la tache. Augmenter le delai si necessaire.",
+    "severity": "warning"
+  },
+  "0xC0000005": {
+    "title": "Violation d'acces (0xC0000005)",
+    "explanation": "STATUS_ACCESS_VIOLATION : le programme de la tache a plante (acces memoire invalide).",
+    "remediation": "1. Mettre a jour l'application. 2. Verifier les drivers lies. 3. Tester la RAM (mdsched).",
+    "severity": "error"
+  },
+  "0xE0434352": {
+    "title": "Exception .NET non geree (0xE0434352)",
+    "explanation": "Code CLR : l'application .NET de la tache a leve une exception non geree et a plante.",
+    "remediation": "1. Consulter le journal Application (Event 1026). 2. Mettre a jour l'app et le .NET Runtime. 3. Contacter l'editeur.",
+    "severity": "error"
+  },
+  "0xE0464645": {
+    "title": "Exception applicative (0xE0464645)",
+    "explanation": "Exception specifique a l'application levee a l'execution.",
+    "remediation": "Consulter les logs de l'application et la mettre a jour.",
+    "severity": "error"
   }
 }

@@ -260,5 +260,155 @@
     "explanation": "Evenement de carte reseau (perte de lien, init driver). Cable, driver ou economie d'energie.",
     "remediation": "1. Verifier le cable/Wi-Fi. 2. Mettre a jour le driver reseau. 3. Desactiver l'economie d'energie de la carte.",
     "severity": "info"
+  },
+  "7026": {
+    "title": "Service Control Manager — driver de demarrage non charge",
+    "explanation": "Un ou plusieurs pilotes lances au demarrage (boot/system-start) n'ont pas pu se charger.",
+    "remediation": "1. Identifier le driver dans le message. 2. S'il est inutile, desactiver le service associe. 3. S'il est requis, le reinstaller/mettre a jour. 4. sfc /scannow.",
+    "severity": "warning"
+  },
+  "7043": {
+    "title": "Service Control Manager — arret incorrect d'un service",
+    "explanation": "Un service ne s'est pas arrete proprement lors de l'extinction, pouvant ralentir l'arret du PC.",
+    "remediation": "1. Identifier le service. 2. Mettre a jour le logiciel. 3. Verifier ses dependances.",
+    "severity": "warning"
+  },
+  "1040": {
+    "title": "TPM-WMI — initialisation du module TPM",
+    "explanation": "Evenement lie au module de plateforme securisee (TPM). Souvent informatif au demarrage.",
+    "remediation": "1. Generalement benin. 2. Si BitLocker/Windows Hello echoue : mettre a jour le firmware TPM, verifier l'etat (tpm.msc). 3. Mettre a jour le BIOS/UEFI.",
+    "severity": "info"
+  },
+  "1042": {
+    "title": "TPM-WMI — operation TPM",
+    "explanation": "Operation du module TPM (provisionnement, compteur). Generalement informatif.",
+    "remediation": "Si fonctions de securite en echec : tpm.msc -> Effacer/reprovisionner (attention BitLocker), mettre a jour le firmware.",
+    "severity": "info"
+  },
+  "17": {
+    "title": "WHEA-Logger — erreur materielle corrigee",
+    "explanation": "Le materiel a signale une erreur corrigee (cache CPU, memoire, PCIe). Non fatale mais a surveiller.",
+    "remediation": "1. Surveiller la frequence. 2. Tester la RAM (mdsched). 3. Mettre a jour BIOS/UEFI et chipset. 4. Verifier temperatures.",
+    "severity": "warning"
+  },
+  "18": {
+    "title": "WHEA-Logger — erreur materielle FATALE",
+    "explanation": "Erreur materielle non corrigeable signalee (souvent CPU/RAM/carte mere). Peut precder un crash.",
+    "remediation": "1. Tester RAM (mdsched) et CPU (stress test). 2. Verifier alimentation et temperatures. 3. Mettre a jour BIOS. 4. Tester avec un seul module RAM. 5. Envisager remplacement materiel.",
+    "severity": "critical"
+  },
+  "19": {
+    "title": "WHEA-Logger — erreur materielle corrigee (memoire/cache)",
+    "explanation": "Erreur corrigee detectee par WHEA (souvent ECC memoire ou cache).",
+    "remediation": "1. Surveiller. 2. Tester la RAM. 3. Mettre a jour BIOS/microcode. 4. Verifier l'overclocking (revenir aux defauts).",
+    "severity": "warning"
+  },
+  "134": {
+    "title": "Time-Service — synchronisation horaire echouee",
+    "explanation": "Le service de temps Windows n'a pas pu se synchroniser avec la source NTP.",
+    "remediation": "1. Verifier la connexion Internet. 2. w32tm /resync. 3. Changer de serveur NTP (time.windows.com, pool.ntp.org). 4. Verifier le service W32Time.",
+    "severity": "warning"
+  },
+  "1058": {
+    "title": "GroupPolicy — lecture de gpt.ini echouee",
+    "explanation": "Le client de strategie de groupe n'a pas pu lire gpt.ini sur le controleur de domaine (acces refuse ou reseau).",
+    "remediation": "1. Verifier la connectivite au DC. 2. Verifier DNS. 3. gpupdate /force. 4. Verifier les permissions du partage SYSVOL.",
+    "severity": "error"
+  },
+  "1030": {
+    "title": "GroupPolicy — echec de requete de strategie",
+    "explanation": "Le traitement des strategies de groupe a echoue (souvent associe a l'Event 1058).",
+    "remediation": "1. Correler avec 1058. 2. Verifier reseau/DNS vers le DC. 3. gpupdate /force.",
+    "severity": "error"
+  },
+  "1500": {
+    "title": "User Profile Service — echec d'ouverture de profil",
+    "explanation": "Windows n'a pas pu charger le profil utilisateur correctement.",
+    "remediation": "1. Verifier l'espace disque. 2. Verifier la cle ProfileList (regedit) pour des entrees .bak. 3. chkdsk si corruption.",
+    "severity": "error"
+  },
+  "1511": {
+    "title": "User Profile Service — profil temporaire charge",
+    "explanation": "Le profil utilisateur est introuvable, Windows a charge un profil temporaire (modifications perdues a la deconnexion).",
+    "remediation": "1. Redemarrer. 2. Corriger ProfileList dans le registre (supprimer le .bak en double). 3. Restaurer le profil depuis une sauvegarde.",
+    "severity": "error"
+  },
+  "1530": {
+    "title": "User Profile Service — handles registre non liberes",
+    "explanation": "Des applications gardent des cles de registre ouvertes a la deconnexion, empechant la fermeture propre du profil.",
+    "remediation": "1. Generalement benin. 2. Identifier l'application citee. 3. La fermer avant deconnexion. 4. Mettre a jour le logiciel.",
+    "severity": "info"
+  },
+  "4625": {
+    "title": "Security — echec d'ouverture de session",
+    "explanation": "Une tentative de connexion a echoue (mauvais mot de passe, compte verrouille, ou tentative non autorisee). Surveiller si frequent (force brute).",
+    "remediation": "1. Identifier le compte et l'origine (IP/process) dans le message. 2. Si attaques repetees : bloquer l'IP (pare-feu), activer le verrouillage de compte. 3. Verifier l'acces RDP expose.",
+    "severity": "warning"
+  },
+  "4648": {
+    "title": "Security — connexion avec identifiants explicites",
+    "explanation": "Une connexion a ete tentee en fournissant explicitement des identifiants (runas, tache planifiee). Normal ou suspect selon le contexte.",
+    "remediation": "Verifier le process source et le compte cible. Suspect si inattendu.",
+    "severity": "info"
+  },
+  "1008": {
+    "title": "Perflib — compteur de performance illisible",
+    "explanation": "Une DLL de compteur de performance n'a pas pu etre ouverte ou lue. Generalement benin.",
+    "remediation": "1. Souvent ignorable. 2. Reconstruire les compteurs : lodctr /r. 3. Reinstaller l'application liee.",
+    "severity": "info"
+  },
+  "10028": {
+    "title": "DistributedCOM — communication distante impossible",
+    "explanation": "DCOM n'a pas pu communiquer avec un ordinateur distant (reseau, pare-feu, ou machine eteinte).",
+    "remediation": "1. Verifier la connectivite reseau. 2. Verifier les regles DCOM/pare-feu. 3. Souvent benin si la cible n'existe plus.",
+    "severity": "warning"
+  },
+  "12289": {
+    "title": "Volsnap — erreur de cliche instantane (VSS)",
+    "explanation": "Le service de cliches instantanes (points de restauration, sauvegardes) a rencontre une erreur.",
+    "remediation": "1. Verifier l'espace disque. 2. vssadmin list shadowstorage. 3. Augmenter l'espace VSS. 4. chkdsk si corruption.",
+    "severity": "warning"
+  },
+  "8193": {
+    "title": "VSS — echec de creation de cliche",
+    "explanation": "Volume Shadow Copy n'a pas pu creer un cliche (sauvegarde/point de restauration echoue).",
+    "remediation": "1. Verifier l'etat des services VSS et 'Cliche instantane des volumes'. 2. Espace disque suffisant. 3. vssadmin list writers (writers en echec -> redemarrer).",
+    "severity": "error"
+  },
+  "50": {
+    "title": "Ntfs — echec d'ecriture differee",
+    "explanation": "Des donnees en cache n'ont pas pu etre ecrites sur le disque (perte possible). Disque/cable instable ou debranchement.",
+    "remediation": "1. Sauvegarder. 2. Verifier cable/connexion (disque externe). 3. chkdsk /r. 4. Verifier SMART.",
+    "severity": "error"
+  },
+  "137": {
+    "title": "Ntfs — gestionnaire de transactions par defaut",
+    "explanation": "Erreur du gestionnaire de transactions NTFS sur un volume (corruption legere possible).",
+    "remediation": "1. chkdsk /f sur le volume. 2. Verifier SMART. 3. Sauvegarder si recurrent.",
+    "severity": "warning"
+  },
+  "140": {
+    "title": "Ntfs — echec d'ecriture sur le volume",
+    "explanation": "Le systeme n'a pas pu ecrire toutes les donnees sur le volume (disque defaillant ou deconnecte).",
+    "remediation": "1. Sauvegarder immediatement. 2. Verifier la connexion. 3. chkdsk /r. 4. Surveiller SMART, remplacer si degrade.",
+    "severity": "error"
+  },
+  "36874": {
+    "title": "Schannel — aucune suite de chiffrement commune",
+    "explanation": "TLS a echoue car client et serveur n'ont aucune suite de chiffrement en commun.",
+    "remediation": "1. Mettre a jour Windows et l'application. 2. Activer les versions TLS requises (1.2/1.3). 3. Verifier la config des suites de chiffrement.",
+    "severity": "warning"
+  },
+  "36871": {
+    "title": "Schannel — echec de creation des identifiants TLS",
+    "explanation": "Erreur lors de la creation des identifiants de securite cote client ou serveur (certificat ou config TLS).",
+    "remediation": "1. Verifier les certificats installes. 2. Verifier les protocoles TLS actives (registre SCHANNEL). 3. Mettre a jour Windows.",
+    "severity": "warning"
+  },
+  "1796": {
+    "title": "TPM-WMI — erreur de provisionnement TPM",
+    "explanation": "Le module TPM n'a pas pu etre provisionne correctement.",
+    "remediation": "1. tpm.msc -> verifier l'etat. 2. Mettre a jour le firmware TPM (BIOS/UEFI). 3. Effacer le TPM si necessaire (attention : sauvegarder les cles BitLocker avant).",
+    "severity": "warning"
   }
 }
