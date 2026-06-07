@@ -7,8 +7,15 @@ namespace WinLogAnalyzer.Core.Settings;
 /// </summary>
 public sealed class AppSettings
 {
-    public string SelectedLog { get; set; } = "System";
+    // Journaux analyses (multi-selection).
+    public bool LogSystem { get; set; } = true;
+    public bool LogApplication { get; set; } = true;
+    public bool LogSecurity { get; set; }
+
     public int MaxCount { get; set; } = 100;
+
+    /// <summary>Plage temporelle en heures (0 = tout l'historique).</summary>
+    public int TimeRangeHours { get; set; }
     public bool LevelCritical { get; set; } = true;
     public bool LevelError { get; set; } = true;
     public bool LevelWarning { get; set; }
@@ -50,6 +57,17 @@ public sealed class AppSettings
         {
             Console.Error.WriteLine($"[WARN] Ecriture settings echouee: {ex.Message}");
         }
+    }
+
+    /// <summary>Journaux selectionnes (jamais vide : System par defaut).</summary>
+    public IReadOnlyList<string> SelectedLogs()
+    {
+        var logs = new List<string>();
+        if (LogSystem) logs.Add("System");
+        if (LogApplication) logs.Add("Application");
+        if (LogSecurity) logs.Add("Security");
+        if (logs.Count == 0) logs.Add("System");
+        return logs;
     }
 
     /// <summary>Niveaux actifs sous forme de codes Windows (1..4).</summary>

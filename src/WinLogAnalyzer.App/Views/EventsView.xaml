@@ -124,22 +124,32 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <StackPanel Grid.Column="0" Margin="0,0,16,0">
-                <TextBlock Text="JOURNAL" Style="{StaticResource FieldLabel}" />
-                <ComboBox Width="160" ItemsSource="{Binding AvailableLogs}" SelectedItem="{Binding SelectedLog}" />
+                <TextBlock Text="JOURNAUX" Style="{StaticResource FieldLabel}" />
+                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                    <CheckBox Content="System" IsChecked="{Binding LogSystem}" />
+                    <CheckBox Content="Application" IsChecked="{Binding LogApplication}" />
+                    <CheckBox Content="Security" IsChecked="{Binding LogSecurity}" />
+                </StackPanel>
             </StackPanel>
             <StackPanel Grid.Column="1" Margin="0,0,16,0">
-                <TextBlock Text="NOMBRE MAX" Style="{StaticResource FieldLabel}" />
-                <TextBox Width="90" Text="{Binding MaxCount, UpdateSourceTrigger=LostFocus}" />
+                <TextBlock Text="MAX / JOURNAL" Style="{StaticResource FieldLabel}" />
+                <TextBox Width="80" Text="{Binding MaxCount, UpdateSourceTrigger=LostFocus}" />
             </StackPanel>
             <StackPanel Grid.Column="2" Margin="0,0,16,0">
+                <TextBlock Text="PERIODE" Style="{StaticResource FieldLabel}" />
+                <ComboBox Width="120" ItemsSource="{Binding RangeOptions}" DisplayMemberPath="Label"
+                          SelectedValuePath="Hours" SelectedValue="{Binding SelectedRangeHours}" />
+            </StackPanel>
+            <StackPanel Grid.Column="3" Margin="0,0,16,0">
                 <TextBlock Text="FILTRE" Style="{StaticResource FieldLabel}" />
                 <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
             </StackPanel>
-            <Button Grid.Column="3" Content="Analyser" VerticalAlignment="Bottom"
+            <Button Grid.Column="4" Content="Analyser" VerticalAlignment="Bottom"
                     Style="{StaticResource PrimaryButton}" Command="{Binding AnalyzeCommand}" />
         </Grid>
 
@@ -229,6 +239,7 @@
                 <WrapPanel>
                     <Button Content="CSV" Style="{StaticResource GhostButton}" Margin="0,0,6,6" Command="{Binding ExportCsvCommand}" />
                     <Button Content="HTML" Style="{StaticResource GhostButton}" Margin="0,0,6,6" Command="{Binding ExportHtmlCommand}" />
+                    <Button Content="PDF" Style="{StaticResource GhostButton}" Margin="0,0,6,6" Command="{Binding ExportPdfCommand}" />
                     <Button Content="Services" Style="{StaticResource GhostButton}" Margin="0,0,6,6" Click="OpenServices" />
                     <Button Content="Fiabilite" Style="{StaticResource GhostButton}" Margin="0,0,6,6" Click="OpenReliability" />
                     <Button Content="RAM test" Style="{StaticResource GhostButton}" Margin="0,0,6,6" Click="OpenMemDiag" />

@@ -35,6 +35,9 @@
             <TabItem Header="Planificateur de taches">
                 <views:TasksView DataContext="{Binding Tasks}" />
             </TabItem>
+            <TabItem Header="Incidents">
+                <views:IncidentsView DataContext="{Binding Incidents}" />
+            </TabItem>
         </TabControl>
     </Grid>
 </Window>

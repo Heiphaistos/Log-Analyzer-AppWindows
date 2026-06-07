@@ -1,0 +1,129 @@
+<UserControl x:Class="WinLogAnalyzer.App.Views.IncidentsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:inf="clr-namespace:WinLogAnalyzer.App.Infrastructure"
+             Background="{StaticResource Bg}">
+
+    <UserControl.Resources>
+        <inf:SeverityToBrushConverter x:Key="SevBrush" />
+        <inf:NullToVisibilityConverter x:Key="NullVis" />
+        <BooleanToVisibilityConverter x:Key="BoolVis" />
+
+        <!-- Event imbrique dans un incident (compact) -->
+        <DataTemplate x:Key="IncidentEventTemplate">
+            <Border Background="{StaticResource Bg}" BorderBrush="{StaticResource Border}" BorderThickness="1"
+                    CornerRadius="8" Padding="10,8" Margin="0,0,0,6">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding EventId}" FontWeight="Bold" FontSize="13" MinWidth="54" />
+                        <TextBlock Text="{Binding Level}" FontSize="11" FontWeight="Bold" Margin="6,0"
+                                   Foreground="{Binding Level, Converter={StaticResource SevBrush}}" />
+                        <TextBlock Text="{Binding MetaLine}" Foreground="{StaticResource TextDim}" FontSize="11"
+                                   TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding Solution.Title}" Foreground="#4CC4FF" FontSize="12" Margin="0,4,0,0"
+                               Visibility="{Binding Solution, Converter={StaticResource NullVis}}" />
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+
+        <!-- Carte incident -->
+        <DataTemplate x:Key="IncidentTemplate">
+            <Border Background="{StaticResource BgCard}" CornerRadius="12" BorderThickness="1"
+                    BorderBrush="{StaticResource Border}" Margin="0,0,0,12">
+                <Grid>
+                    <Border Width="4" HorizontalAlignment="Left" CornerRadius="12,0,0,12"
+                            Background="{Binding DisplayLevel, Converter={StaticResource SevBrush}}" />
+                    <StackPanel Margin="16,0,0,0">
+                        <ToggleButton IsChecked="{Binding IsExpanded, Mode=TwoWay}" Cursor="Hand"
+                                      Background="Transparent" BorderThickness="0">
+                            <ToggleButton.Template>
+                                <ControlTemplate TargetType="ToggleButton">
+                                    <Border Background="Transparent" Padding="16,14">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock FontSize="14" FontWeight="SemiBold"
+                                                           Text="{Binding Signature, Mode=OneWay, StringFormat=Incident — IDs {0}}" />
+                                                <TextBlock Text="{Binding Summary}" Foreground="{StaticResource TextDim}"
+                                                           FontSize="12" Margin="0,3,0,0" />
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" x:Name="chev" Text="&#x25BC;"
+                                                       Foreground="{StaticResource TextDim}" VerticalAlignment="Center" FontSize="12" />
+                                        </Grid>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsChecked" Value="False">
+                                            <Setter TargetName="chev" Property="Text" Value="&#x25B6;" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </ToggleButton.Template>
+                        </ToggleButton>
+                        <ItemsControl Margin="16,0,16,14" ItemsSource="{Binding Events}"
+                                      ItemTemplate="{StaticResource IncidentEventTemplate}"
+                                      Visibility="{Binding IsExpanded, Converter={StaticResource BoolVis}}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="28,18,28,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                <TextBlock Text="FENETRE (s)" Style="{StaticResource FieldLabel}" />
+                <ComboBox Width="100" ItemsSource="{Binding WindowOptions}" SelectedItem="{Binding WindowSeconds}" />
+            </StackPanel>
+            <TextBlock Grid.Column="1" VerticalAlignment="Bottom" Margin="4,0,0,10"
+                       Foreground="{StaticResource TextDim}" FontSize="12"
+                       Text="Regroupe les events survenus dans la meme fenetre temporelle (cause racine probable)." />
+            <Button Grid.Column="2" Content="Correler" VerticalAlignment="Bottom"
+                    Style="{StaticResource PrimaryButton}" Command="{Binding RefreshCommand}" />
+        </Grid>
+
+        <ListBox Grid.Row="1" Margin="28,4,28,4" Background="Transparent" BorderThickness="0"
+                 ItemsSource="{Binding Incidents}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
+                 ItemTemplate="{StaticResource IncidentTemplate}">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem"><ContentPresenter /></ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListBox.ItemContainerStyle>
+        </ListBox>
+
+        <Border Grid.Row="2" Background="{StaticResource BgElev}" BorderBrush="{StaticResource Border}"
+                BorderThickness="0,1,0,0" Padding="28,10">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="&#x25CF;" Foreground="{StaticResource Solved}" FontSize="10" VerticalAlignment="Center"
+                           Margin="0,0,8,0" Visibility="{Binding IsNotLoading, Converter={StaticResource BoolVis}}" />
+                <TextBlock Text="&#x231B;" Foreground="{StaticResource Accent}" FontSize="12" VerticalAlignment="Center"
+                           Margin="0,0,8,0" Visibility="{Binding IsLoading, Converter={StaticResource BoolVis}}" />
+                <TextBlock Text="{Binding StatusText}" Foreground="{StaticResource TextDim}" FontSize="13" VerticalAlignment="Center" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

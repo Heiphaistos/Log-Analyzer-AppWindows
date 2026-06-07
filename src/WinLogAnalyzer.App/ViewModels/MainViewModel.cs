@@ -22,12 +22,14 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
         Events = new EventsViewModel(_solutions, settings, _logger);
         Tasks = new TasksViewModel(_logger);
+        Incidents = new IncidentsViewModel(_solutions, settings, _logger);
 
         _logger.Info("Application demarree.");
     }
 
     public EventsViewModel Events { get; }
     public TasksViewModel Tasks { get; }
+    public IncidentsViewModel Incidents { get; }
 
     public void Dispose()
     {

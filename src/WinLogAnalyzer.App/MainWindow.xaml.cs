@@ -18,6 +18,7 @@ public partial class MainWindow : Window
         {
             _vm.Events.AnalyzeCommand.Execute(null);
             _ = _vm.Tasks.LoadAsync();
+            _ = _vm.Incidents.LoadAsync();
         };
 
         Closed += (_, _) => _vm.Dispose();

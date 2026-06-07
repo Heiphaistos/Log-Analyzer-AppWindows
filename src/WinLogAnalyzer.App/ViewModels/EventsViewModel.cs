@@ -16,7 +16,10 @@ using WinLogAnalyzer.Core.Settings;
 
 namespace WinLogAnalyzer.App.ViewModels;
 
-/// <summary>ViewModel de l'onglet Evenements : lecture, filtres, dedup, export, surveillance.</summary>
+/// <summary>Option de plage temporelle (label + nombre d'heures, 0 = tout).</summary>
+public sealed record RangeOption(string Label, int Hours);
+
+/// <summary>ViewModel de l'onglet Evenements : multi-journaux, filtres, dedup, export, surveillance.</summary>
 public sealed class EventsViewModel : ObservableObject, IDisposable
 {
     private readonly SolutionProvider _solutions;
@@ -24,7 +27,7 @@ public sealed class EventsViewModel : ObservableObject, IDisposable
     private readonly FileLogger _logger;
 
     private List<EventEntry> _raw = new();
-    private EventLogWatcher? _watcher;
+    private readonly List<EventLogWatcher> _watchers = new();
 
     private string _searchText = "";
     private string _statusText = "Pret.";
@@ -40,12 +43,20 @@ public sealed class EventsViewModel : ObservableObject, IDisposable
         Events = new ObservableCollection<EventItemViewModel>();
         EventsView = CollectionViewSource.GetDefaultView(Events);
         EventsView.Filter = o => o is EventItemViewModel vm && vm.Matches(_searchText);
-
         Timeline = new ObservableCollection<TimelineBar>();
+
+        RangeOptions = new[]
+        {
+            new RangeOption("Tout", 0),
+            new RangeOption("24 heures", 24),
+            new RangeOption("7 jours", 168),
+            new RangeOption("30 jours", 720)
+        };
 
         AnalyzeCommand = new RelayCommand(async () => await AnalyzeAsync(), () => !_isLoading);
         ExportCsvCommand = new RelayCommand(ExportCsv, () => _raw.Count > 0);
         ExportHtmlCommand = new RelayCommand(ExportHtml, () => _raw.Count > 0);
+        ExportPdfCommand = new RelayCommand(ExportPdf, () => _raw.Count > 0);
         ClearNewCommand = new RelayCommand(() => NewCount = 0);
 
         _solutions.Changed += OnSolutionsChanged;
@@ -55,25 +66,29 @@ public sealed class EventsViewModel : ObservableObject, IDisposable
     public ObservableCollection<EventItemViewModel> Events { get; }
     public ICollectionView EventsView { get; }
     public ObservableCollection<TimelineBar> Timeline { get; }
+    public RangeOption[] RangeOptions { get; }
 
     public RelayCommand AnalyzeCommand { get; }
     public RelayCommand ExportCsvCommand { get; }
     public RelayCommand ExportHtmlCommand { get; }
+    public RelayCommand ExportPdfCommand { get; }
     public RelayCommand ClearNewCommand { get; }
 
-    public string[] AvailableLogs { get; } = { "System", "Application", "Security" };
-
-    // --- Liees aux settings (persistees) ---
-    public string SelectedLog
-    {
-        get => _settings.SelectedLog;
-        set { if (_settings.SelectedLog != value) { _settings.SelectedLog = value; OnPropertyChanged(); Persist(); } }
-    }
+    // --- Journaux (multi) ---
+    public bool LogSystem { get => _settings.LogSystem; set { _settings.LogSystem = value; OnPropertyChanged(); Persist(); } }
+    public bool LogApplication { get => _settings.LogApplication; set { _settings.LogApplication = value; OnPropertyChanged(); Persist(); } }
+    public bool LogSecurity { get => _settings.LogSecurity; set { _settings.LogSecurity = value; OnPropertyChanged(); Persist(); } }
 
     public int MaxCount
     {
         get => _settings.MaxCount;
         set { var v = Math.Clamp(value, 1, 1000); if (_settings.MaxCount != v) { _settings.MaxCount = v; OnPropertyChanged(); Persist(); } }
+    }
+
+    public int SelectedRangeHours
+    {
+        get => _settings.TimeRangeHours;
+        set { if (_settings.TimeRangeHours != value) { _settings.TimeRangeHours = value; OnPropertyChanged(); Persist(); Rebuild(); } }
     }
 
     public bool LevelCritical { get => _settings.LevelCritical; set { _settings.LevelCritical = value; OnPropertyChanged(); Persist(); } }
@@ -123,36 +138,43 @@ public sealed class EventsViewModel : ObservableObject, IDisposable
     public int ErrorCount => Events.Count(e => e.Level == "Error");
     public int SolvedCount => Events.Count(e => e.HasSolution);
 
+    private string Scope => string.Join(", ", _settings.SelectedLogs());
+
     private async Task AnalyzeAsync()
     {
         IsLoading = true;
-        StatusText = $"Analyse du journal {SelectedLog}…";
+        StatusText = $"Analyse de {Scope}…";
 
         try
         {
-            string log = SelectedLog;
+            var logs = _settings.SelectedLogs();
             int max = MaxCount;
             var levels = _settings.SelectedLevels();
 
             var entries = await Task.Run(() =>
             {
-                var service = new EventLogService(new ProcessResolver(), _solutions);
-                return service.GetRecent(log, max, levels);
+                var resolver = new ProcessResolver();
+                var service = new EventLogService(resolver, _solutions);
+                var merged = new List<EventEntry>();
+                foreach (var log in logs)
+                {
+                    try { merged.AddRange(service.GetRecent(log, max, levels)); }
+                    catch (InvalidOperationException ex) { Console.Error.WriteLine(ex.Message); }
+                }
+                return merged
+                    .OrderByDescending(e => e.TimeCreated)
+                    .Take(max * logs.Count)
+                    .ToList();
             });
 
-            _raw = entries.ToList();
+            _raw = entries;
             Rebuild();
-            _logger.Info($"Analyse {log}: {_raw.Count} events.");
-        }
-        catch (InvalidOperationException ex)
-        {
-            StatusText = $"Erreur : {ex.Message}";
-            _logger.Error($"Analyse {SelectedLog}: {ex.Message}");
+            _logger.Info($"Analyse [{Scope}]: {_raw.Count} events.");
         }
         catch (Exception ex)
         {
-            StatusText = $"Erreur inattendue : {ex.Message}";
-            _logger.Error($"Analyse inattendue: {ex.Message}");
+            StatusText = $"Erreur : {ex.Message}";
+            _logger.Error($"Analyse [{Scope}]: {ex.Message}");
         }
         finally
         {
@@ -160,11 +182,22 @@ public sealed class EventsViewModel : ObservableObject, IDisposable
         }
     }
 
-    /// <summary>Reconstruit la liste affichee depuis _raw (dedup + timeline + stats).</summary>
+    private IReadOnlyList<EventEntry> Filtered()
+    {
+        if (SelectedRangeHours <= 0) return _raw;
+        var cutoff = DateTime.Now.AddHours(-SelectedRangeHours);
+        return _raw.Where(e => e.TimeCreated >= cutoff).ToList();
+    }
+
+    private IReadOnlyList<EventEntry> DisplaySet()
+    {
+        var f = Filtered();
+        return GroupDuplicates ? EventGrouper.Deduplicate(f) : f;
+    }
+
     private void Rebuild()
     {
-        var display = GroupDuplicates ? EventGrouper.Deduplicate(_raw) : (IReadOnlyList<EventEntry>)_raw;
-
+        var display = DisplaySet();
         Events.Clear();
         foreach (var e in display)
             Events.Add(new EventItemViewModel(e));
@@ -182,16 +215,14 @@ public sealed class EventsViewModel : ObservableObject, IDisposable
     private void BuildTimeline()
     {
         Timeline.Clear();
-        if (_raw.Count == 0) return;
+        var src = Filtered();
+        if (src.Count == 0) return;
 
-        var byDay = _raw.GroupBy(e => e.TimeCreated.Date)
-                        .OrderBy(g => g.Key)
-                        .ToList();
+        var byDay = src.GroupBy(e => e.TimeCreated.Date).OrderBy(g => g.Key).ToList();
         int maxCount = byDay.Max(g => g.Count());
         const double maxH = 60;
 
         foreach (var g in byDay)
-        {
             Timeline.Add(new TimelineBar
             {
                 Label = g.Key.ToString("dd/MM"),
@@ -199,20 +230,24 @@ public sealed class EventsViewModel : ObservableObject, IDisposable
                 Height = Math.Max(4, maxH * g.Count() / maxCount),
                 HasCritical = g.Any(e => e.Level == "Critical")
             });
-        }
     }
 
-    // ===== Surveillance temps reel =====
+    // ===== Surveillance temps reel (un watcher par journal) =====
     private void StartMonitor()
     {
         try
         {
             var service = new EventLogService(new ProcessResolver(), _solutions);
-            _watcher = service.CreateWatcher(SelectedLog, _settings.SelectedLevels());
-            _watcher.EventRecordWritten += OnEventWritten;
-            _watcher.Enabled = true;
-            StatusText = $"Surveillance active sur {SelectedLog}.";
-            _logger.Info($"Surveillance ON ({SelectedLog}).");
+            foreach (var log in _settings.SelectedLogs())
+            {
+                string logName = log;
+                var w = service.CreateWatcher(logName, _settings.SelectedLevels());
+                w.EventRecordWritten += (s, e) => OnEventWritten(logName, e);
+                w.Enabled = true;
+                _watchers.Add(w);
+            }
+            StatusText = $"Surveillance active sur {Scope}.";
+            _logger.Info($"Surveillance ON [{Scope}].");
         }
         catch (Exception ex)
         {
@@ -225,22 +260,23 @@ public sealed class EventsViewModel : ObservableObject, IDisposable
 
     private void StopMonitor()
     {
-        if (_watcher is null) return;
-        _watcher.EventRecordWritten -= OnEventWritten;
-        _watcher.Dispose();
-        _watcher = null;
+        foreach (var w in _watchers)
+        {
+            try { w.Enabled = false; w.Dispose(); } catch { }
+        }
+        _watchers.Clear();
         StatusText = "Surveillance arretee.";
         _logger.Info("Surveillance OFF.");
     }
 
-    private void OnEventWritten(object? sender, EventRecordWrittenEventArgs e)
+    private void OnEventWritten(string logName, EventRecordWrittenEventArgs e)
     {
         if (e.EventRecord is null) return;
         EventEntry entry;
         try
         {
             var service = new EventLogService(new ProcessResolver(), _solutions);
-            entry = service.Map(e.EventRecord, SelectedLog);
+            entry = service.Map(e.EventRecord, logName);
         }
         catch { return; }
         finally { e.EventRecord.Dispose(); }
@@ -248,11 +284,8 @@ public sealed class EventsViewModel : ObservableObject, IDisposable
         Application.Current?.Dispatcher.Invoke(() =>
         {
             _raw.Insert(0, entry);
-            Events.Insert(0, new EventItemViewModel(entry));
             NewCount++;
-            RaiseStats();
-            BuildTimeline();
-            RefreshExportState();
+            Rebuild();
         });
     }
 
@@ -261,18 +294,27 @@ public sealed class EventsViewModel : ObservableObject, IDisposable
     {
         var path = AskSavePath("CSV (*.csv)|*.csv", "csv");
         if (path is null) return;
-        try { ReportExporter.ToCsv(GroupDuplicates ? EventGrouper.Deduplicate(_raw) : _raw, path);
-              StatusText = $"Export CSV : {path}"; _logger.Info($"Export CSV {path}"); }
-        catch (Exception ex) { StatusText = $"Export echoue : {ex.Message}"; }
+        Try(() => ReportExporter.ToCsv(DisplaySet(), path), $"Export CSV : {path}", "CSV");
     }
 
     private void ExportHtml()
     {
         var path = AskSavePath("HTML (*.html)|*.html", "html");
         if (path is null) return;
-        try { ReportExporter.ToHtml(GroupDuplicates ? EventGrouper.Deduplicate(_raw) : _raw, path, SelectedLog);
-              StatusText = $"Export HTML : {path}"; _logger.Info($"Export HTML {path}"); }
-        catch (Exception ex) { StatusText = $"Export echoue : {ex.Message}"; }
+        Try(() => ReportExporter.ToHtml(DisplaySet(), path, Scope), $"Export HTML : {path}", "HTML");
+    }
+
+    private void ExportPdf()
+    {
+        var path = AskSavePath("PDF (*.pdf)|*.pdf", "pdf");
+        if (path is null) return;
+        Try(() => PdfExporter.ToPdf(DisplaySet(), path, Scope), $"Export PDF : {path}", "PDF");
+    }
+
+    private void Try(Action export, string okMsg, string kind)
+    {
+        try { export(); StatusText = okMsg; _logger.Info(okMsg); }
+        catch (Exception ex) { StatusText = $"Export {kind} echoue : {ex.Message}"; _logger.Error($"Export {kind}: {ex.Message}"); }
     }
 
     private string? AskSavePath(string filter, string ext)
@@ -280,21 +322,19 @@ public sealed class EventsViewModel : ObservableObject, IDisposable
         var dlg = new SaveFileDialog
         {
             Filter = filter,
-            FileName = $"winlog_{SelectedLog}_{DateTime.Now:yyyyMMdd_HHmmss}.{ext}"
+            FileName = $"winlog_{DateTime.Now:yyyyMMdd_HHmmss}.{ext}"
         };
         return dlg.ShowDialog() == true ? dlg.FileName : null;
     }
 
     private void OnSolutionsChanged()
-        => Application.Current?.Dispatcher.Invoke(async () =>
-        {
-            if (!IsLoading) await AnalyzeAsync();
-        });
+        => Application.Current?.Dispatcher.Invoke(async () => { if (!IsLoading) await AnalyzeAsync(); });
 
     private void RefreshExportState()
     {
         ExportCsvCommand.RaiseCanExecuteChanged();
         ExportHtmlCommand.RaiseCanExecuteChanged();
+        ExportPdfCommand.RaiseCanExecuteChanged();
     }
 
     private void RaiseStats()

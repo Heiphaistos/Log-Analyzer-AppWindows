@@ -1,4 +1,4 @@
-# WinLog Analyzer · v1.0
+# WinLog Analyzer · v1.1
 
 Application **desktop Windows** (WPF, .NET 8) de diagnostic : analyse l'Observateur
 d'évènements **et** le Planificateur de tâches, traduit les PID/codes en clair, et propose
@@ -9,14 +9,18 @@ Interface native — pas de navigateur, pas de serveur web.
 ## Fonctionnalités
 
 **Onglet Évènements**
-- Journaux System / Application / Security, niveaux Critical / Error / Warning / Information (multi-sélection).
+- Journaux System / Application / Security **simultanés** (multi-sélection), niveaux Critical / Error / Warning / Information.
+- Filtre par **période** (24h / 7j / 30j / tout) + recherche live.
 - Résolution PID → nom de process (`[termine]` si mort).
-- Déduplication avec compteur ×N, filtre live, liste virtualisée (fluide sur gros volumes).
+- Déduplication avec compteur ×N, liste virtualisée (fluide sur gros volumes).
 - Cartes dépliables : message brut + explication + remédiation + liens doc.
 - Timeline d'activité par jour.
-- **Surveillance temps réel** (push `EventLogWatcher`) avec compteur de nouveaux évènements.
-- **Export** CSV + HTML (rapport stylé).
+- **Surveillance temps réel** (un `EventLogWatcher` par journal) avec compteur de nouveaux évènements.
+- **Export** CSV + HTML + **PDF** (QuestPDF).
 - **Outils** : services.msc, Moniteur de fiabilité, test RAM (mdsched, confirmation), Observateur.
+
+**Onglet Incidents**
+- Corrélation temporelle des évènements (fenêtre 30/60/120/300 s) → cause racine probable (ex: 41 + 6008 + 1001).
 
 **Onglet Planificateur de tâches**
 - Liste toutes les tâches : état, dernière exécution, prochaine, **code de résultat traduit**.
@@ -68,10 +72,9 @@ Inno Setup 6+ requis : `iscc installer\setup.iss` → `dist\installer\WinLogAnal
 Éditer `data/solutions.json` (Event ID, clé `id` ou `source:id`) ou `data/taskcodes.json`
 (code hex `0x........`). Hot-reload pour `solutions.json` ; rebuild pour copier dans `dist`.
 
-## Limites connues (cf. docs/PRD.md)
-- Export PDF non inclus (utiliser HTML → imprimer en PDF).
-- Corrélation d'incidents disponible côté Core (`Correlator`), pas encore d'onglet dédié.
-- Analyse mono-journal à la fois (multi-journaux simultané : prévu).
+## État roadmap PRD
+Tous les items implémentés : A1–A7, F1–F10, plus corrélation d'incidents (onglet dédié),
+recherche par période, multi-journaux simultané, export PDF.
 
 ## Notes techniques
 - Lecture **seule** ; actions à effet de bord (test RAM) confirmées explicitement.
