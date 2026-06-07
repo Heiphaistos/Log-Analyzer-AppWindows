@@ -44,7 +44,7 @@ public static class Win32ErrorDecoder
         {
             Title = string.IsNullOrWhiteSpace(sysMsg) ? $"Code {hex} ({kind})" : $"{Trim(sysMsg)} ({hex})",
             Explanation = explanation,
-            Remediation = Remediation(u, kind),
+            Remediation = RemediationEngine.Remediate(u),
             Severity = Severity(u)
         };
     }
@@ -144,25 +144,6 @@ public static class Win32ErrorDecoder
         int len = FormatMessage(baseFlags | FORMAT_MESSAGE_IGNORE_INSERTS,
             module, id, 0, sb, sb.Capacity, IntPtr.Zero);
         return len > 0 ? sb.ToString().Trim() : "";
-    }
-
-    private static string Remediation(uint u, string kind)
-    {
-        uint w = (u & 0xFFFF0000) == 0x80070000 ? (u & 0xFFFF) : u;
-
-        return w switch
-        {
-            2 or 3 => "1. Verifier le chemin du programme/script (onglet Actions). 2. Guillemets si espaces. 3. Verifier que le fichier existe.",
-            5 => "1. 'Executer avec les autorisations maximales' (General). 2. Verifier le compte d'execution. 3. Verifier les ACL du fichier cible.",
-            0x20 => "1. Fichier verrouille par un autre processus (Resource Monitor). 2. Planifier quand le fichier est libre.",
-            0x57 => "1. Verifier les arguments passes a l'action (parametre invalide).",
-            0x102 or 0x5B4 => "1. Action trop longue/bloquee. 2. Augmenter le delai (Parametres). 3. Optimiser le script.",
-            0x4C7 => "1. Operation annulee — relancer si involontaire.",
-            _ when kind == "NTSTATUS" => "1. Plantage bas-niveau du programme. 2. Mettre a jour l'app et les drivers. 3. Tester RAM (mdsched) / disque (chkdsk).",
-            _ when u == 0xE0434352 => "1. Exception .NET non geree : voir le journal Application (Event 1026). 2. Mettre a jour l'app et le .NET Runtime.",
-            _ when ((u >> 16) & 0x1FFF) == 4 => "1. Composant COM en cause : reinstaller/reparer le logiciel. 2. Re-enregistrer la DLL (regsvr32). 3. Verifier 32/64 bits.",
-            _ => "1. Executer l'action manuellement pour observer l'erreur. 2. Consulter les logs de l'application. 3. Verifier chemins, droits et dependances."
-        };
     }
 
     private static string Severity(uint u)

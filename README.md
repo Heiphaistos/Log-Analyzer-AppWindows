@@ -37,7 +37,9 @@ Interface native — pas de navigateur, pas de serveur web.
 1. Remédiation **curée** (81 Event IDs + 68 codes tâches) — la plus précise.
 2. **Base offline** (~11 000 codes) — message système exact.
 3. **Décodeur live** `FormatMessage` (HRESULT/Win32/NTSTATUS) — ultime filet, infini.
-- Détection de facilité (Win32, COM, RPC, MSI…) + remédiation heuristique + sévérité.
+- **Remédiation précise pour tout code** via `RemediationEngine` : règles en cascade
+  (code Win32 exact → Windows Update → MSI → facilité HRESULT → catégorie NTSTATUS → générique).
+  Chaque code de la base de ~11 000 reçoit des étapes ciblées, pas un message brut.
 - Les codes **embarqués dans les messages d'évènements** sont aussi décodés.
 
 ## Régénérer la base d'erreurs
