@@ -280,5 +280,131 @@
     "explanation": "Exception specifique a l'application levee a l'execution.",
     "remediation": "Consulter les logs de l'application et la mettre a jour.",
     "severity": "error"
+  },
+  "0x80004005": {
+    "title": "Echec non specifie (0x80004005)",
+    "explanation": "E_FAIL : erreur generique sans detail. L'action a echoue sans raison precise renvoyee.",
+    "remediation": "1. Executer l'action manuellement. 2. Consulter les logs de l'application. 3. Verifier permissions et dependances.",
+    "severity": "error"
+  },
+  "0x80004003": {
+    "title": "Pointeur nul (0x80004003)",
+    "explanation": "E_POINTER : un composant a recu une reference nulle (bug logiciel).",
+    "remediation": "1. Mettre a jour l'application. 2. Reinstaller si persistant. 3. Signaler a l'editeur.",
+    "severity": "error"
+  },
+  "0x8000FFFF": {
+    "title": "Erreur inattendue (0x8000FFFF)",
+    "explanation": "E_UNEXPECTED : echec catastrophique imprevu du composant.",
+    "remediation": "1. Redemarrer. 2. Reparer/reinstaller le logiciel. 3. sfc /scannow.",
+    "severity": "error"
+  },
+  "0x8007000E": {
+    "title": "Memoire insuffisante (0x8007000E)",
+    "explanation": "E_OUTOFMEMORY : pas assez de memoire pour terminer l'action.",
+    "remediation": "1. Fermer des applications. 2. Augmenter le fichier d'echange. 3. Ajouter de la RAM si recurrent.",
+    "severity": "error"
+  },
+  "0x8007007E": {
+    "title": "Module introuvable (0x8007007E)",
+    "explanation": "ERROR_MOD_NOT_FOUND : une DLL requise est absente.",
+    "remediation": "1. Reinstaller le logiciel. 2. Installer le runtime manquant (VC++ Redist, .NET). 3. Verifier le PATH.",
+    "severity": "error"
+  },
+  "0x80070070": {
+    "title": "Espace disque insuffisant (0x80070070)",
+    "explanation": "ERROR_DISK_FULL : le disque est plein, l'action ne peut ecrire.",
+    "remediation": "1. Liberer de l'espace (Nettoyage de disque). 2. Deplacer des fichiers. 3. Verifier les fichiers temporaires.",
+    "severity": "error"
+  },
+  "0x80070091": {
+    "title": "Repertoire non vide (0x80070091)",
+    "explanation": "ERROR_DIR_NOT_EMPTY : suppression d'un dossier non vide impossible.",
+    "remediation": "1. Vider le dossier avant suppression. 2. Verifier les fichiers verrouilles.",
+    "severity": "warning"
+  },
+  "0x80070522": {
+    "title": "Privilege requis absent (0x80070522)",
+    "explanation": "ERROR_PRIVILEGE_NOT_HELD : le compte n'a pas le privilege necessaire (ex: changer l'heure systeme).",
+    "remediation": "1. 'Executer avec les autorisations maximales'. 2. Accorder le privilege via Strategie de securite locale.",
+    "severity": "error"
+  },
+  "0x800705AA": {
+    "title": "Ressources systeme insuffisantes (0x800705AA)",
+    "explanation": "ERROR_NO_SYSTEM_RESOURCES : ressources systeme epuisees (handles, memoire noyau).",
+    "remediation": "1. Redemarrer. 2. Identifier les fuites de handles (Process Explorer). 3. Mettre a jour les pilotes.",
+    "severity": "error"
+  },
+  "0x80070643": {
+    "title": "Echec fatal d'installation (0x80070643)",
+    "explanation": "ERROR_INSTALL_FAILURE : une installation MSI/MSU a echoue (frequent pour Windows Update / .NET).",
+    "remediation": "1. Relancer avec log : msiexec /i pkg /l*v log.txt. 2. Reparer .NET/runtime. 3. Outil de depannage Windows Update.",
+    "severity": "error"
+  },
+  "0x80070641": {
+    "title": "Service Windows Installer indisponible (0x80070641)",
+    "explanation": "ERROR_INSTALL_SERVICE_FAILURE : le service Windows Installer n'a pas pu demarrer.",
+    "remediation": "1. Demarrer le service 'Windows Installer' (services.msc). 2. net start msiserver. 3. Re-enregistrer : msiexec /unregister puis /regserver.",
+    "severity": "error"
+  },
+  "0x80070BC2": {
+    "title": "Redemarrage requis (0x80070BC2)",
+    "explanation": "ERROR_SUCCESS_REBOOT_REQUIRED : l'operation a reussi mais necessite un redemarrage pour finaliser.",
+    "remediation": "Redemarrer le PC.",
+    "severity": "info"
+  },
+  "0x80240022": {
+    "title": "Windows Update — toutes les mises a jour ont echoue (0x80240022)",
+    "explanation": "WU_E_ALL_UPDATES_FAILED : aucune mise a jour n'a pu s'installer.",
+    "remediation": "1. Outil de depannage Windows Update. 2. Reinitialiser SoftwareDistribution (net stop wuauserv, renommer le dossier). 3. Verifier l'espace disque.",
+    "severity": "error"
+  },
+  "0x8024402C": {
+    "title": "Windows Update — erreur de connexion/proxy (0x8024402C)",
+    "explanation": "WU_E_PT_WINHTTP_NAME_NOT_RESOLVED : impossible de joindre le serveur de mise a jour (DNS/proxy).",
+    "remediation": "1. Verifier la connexion Internet et le DNS. 2. Verifier les parametres proxy (netsh winhttp show proxy). 3. Reinitialiser proxy.",
+    "severity": "warning"
+  },
+  "0x80072EE2": {
+    "title": "Delai de connexion depasse (0x80072EE2)",
+    "explanation": "ERROR_INTERNET_TIMEOUT : la connexion a un service distant a expire (mise a jour, telemetrie).",
+    "remediation": "1. Verifier la connexion Internet. 2. Verifier pare-feu/proxy. 3. Relancer.",
+    "severity": "warning"
+  },
+  "0x80131500": {
+    "title": "Erreur .NET generique (0x80131500)",
+    "explanation": "COR_E : erreur generique du CLR .NET lors de l'execution de l'action.",
+    "remediation": "1. Voir le journal Application pour la stack. 2. Mettre a jour le .NET Runtime. 3. Reinstaller l'application.",
+    "severity": "error"
+  },
+  "0xC0000374": {
+    "title": "Corruption du tas (0xC0000374)",
+    "explanation": "STATUS_HEAP_CORRUPTION : le programme a corrompu sa memoire (bug grave ou materiel).",
+    "remediation": "1. Mettre a jour l'application. 2. Tester la RAM (mdsched). 3. Verifier les drivers.",
+    "severity": "critical"
+  },
+  "0xC0000409": {
+    "title": "Depassement de tampon de pile (0xC0000409)",
+    "explanation": "STATUS_STACK_BUFFER_OVERRUN : protection de securite declenchee, le programme a ete termine.",
+    "remediation": "1. Mettre a jour l'application (faille potentielle). 2. Reinstaller. 3. Scanner les malwares.",
+    "severity": "critical"
+  },
+  "0xC00000FD": {
+    "title": "Depassement de pile (0xC00000FD)",
+    "explanation": "STATUS_STACK_OVERFLOW : recursion infinie ou pile epuisee, le programme a plante.",
+    "remediation": "1. Mettre a jour l'application. 2. Signaler le bug a l'editeur.",
+    "severity": "error"
+  },
+  "0xC0000017": {
+    "title": "Memoire insuffisante (0xC0000017)",
+    "explanation": "STATUS_NO_MEMORY : allocation memoire impossible.",
+    "remediation": "1. Fermer des applications. 2. Augmenter le fichier d'echange. 3. Ajouter de la RAM.",
+    "severity": "error"
+  },
+  "0xC0000022": {
+    "title": "Acces refuse (0xC0000022)",
+    "explanation": "STATUS_ACCESS_DENIED : acces refuse au niveau noyau (permissions/integrite).",
+    "remediation": "1. 'Executer avec les autorisations maximales'. 2. Verifier le compte et les ACL.",
+    "severity": "error"
   }
 }

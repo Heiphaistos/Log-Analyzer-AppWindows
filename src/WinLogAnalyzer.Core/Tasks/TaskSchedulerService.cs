@@ -64,7 +64,7 @@ public sealed class TaskSchedulerService
             LastResultHex = ResultCodeProvider.ToHex(code),
             IsFailure = isFailure,
             Description = SafeDescription(task),
-            ResultSolution = _codes.Lookup(code)
+            ResultSolution = _codes.Describe(code)
         };
     }
 

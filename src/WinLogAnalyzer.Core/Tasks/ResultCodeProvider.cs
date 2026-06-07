@@ -18,7 +18,16 @@ public sealed class ResultCodeProvider
         _map = Load(jsonPath);
     }
 
-    public Solution? Lookup(int code)
+    /// <summary>Entree curee si presente, sinon decodage universel (jamais null).</summary>
+    public Solution Describe(int code)
+    {
+        string hex = "0x" + ((uint)code).ToString("X8");
+        if (_map.TryGetValue(hex, out var s)) return s;
+        return Win32ErrorDecoder.Describe(code);
+    }
+
+    /// <summary>Entree curee uniquement (null si absente).</summary>
+    public Solution? LookupCurated(int code)
     {
         string hex = "0x" + ((uint)code).ToString("X8");
         return _map.TryGetValue(hex, out var s) ? s : null;
@@ -26,8 +35,8 @@ public sealed class ResultCodeProvider
 
     public static string ToHex(int code) => "0x" + ((uint)code).ToString("X8");
 
-    /// <summary>Un code != 0 est considere comme un echec (sauf 0x41301 = en cours).</summary>
-    public static bool IsFailure(int code) => code != 0 && (uint)code != 0x00041301;
+    /// <summary>Echec reel (bit de severite + cas benins exclus). Delegue au decodeur.</summary>
+    public static bool IsFailure(int code) => Win32ErrorDecoder.IsFailure((uint)code);
 
     private static Dictionary<string, Solution> Load(string path)
     {

@@ -410,5 +410,89 @@
     "explanation": "Le module TPM n'a pas pu etre provisionne correctement.",
     "remediation": "1. tpm.msc -> verifier l'etat. 2. Mettre a jour le firmware TPM (BIOS/UEFI). 3. Effacer le TPM si necessaire (attention : sauvegarder les cles BitLocker avant).",
     "severity": "warning"
+  },
+  "4101": {
+    "title": "Display — pilote graphique recupere (TDR)",
+    "explanation": "Le pilote graphique a cesse de repondre puis a recupere (Timeout Detection and Recovery). Ecran noir bref, jeu qui plante. Driver GPU, surchauffe ou overclock.",
+    "remediation": "1. Mettre a jour le pilote GPU (clean install DDU). 2. Verifier les temperatures. 3. Annuler tout overclock. 4. Verifier l'alimentation (PSU).",
+    "severity": "warning"
+  },
+  "2004": {
+    "title": "Resource-Exhaustion-Detector — memoire faible",
+    "explanation": "Windows a detecte un epuisement de la memoire virtuelle. Le message liste les processus les plus gourmands.",
+    "remediation": "1. Identifier les processus gourmands (cites dans le message). 2. Augmenter le fichier d'echange. 3. Ajouter de la RAM. 4. Chercher une fuite memoire.",
+    "severity": "warning"
+  },
+  "2013": {
+    "title": "Srv — disque presque plein (90%)",
+    "explanation": "Un volume a atteint 90% d'occupation, ce qui degrade les performances.",
+    "remediation": "1. Liberer de l'espace (Nettoyage de disque, fichiers temporaires). 2. Deplacer des donnees. 3. Etendre le volume.",
+    "severity": "warning"
+  },
+  "333": {
+    "title": "Application Popup — erreur d'E/S registre",
+    "explanation": "Une operation d'ecriture dans le registre a echoue (ruche pleine ou disque sous pression).",
+    "remediation": "1. Liberer de l'espace disque. 2. chkdsk. 3. Verifier la taille des ruches de registre.",
+    "severity": "warning"
+  },
+  "20": {
+    "title": "WindowsUpdateClient — echec d'installation de mise a jour",
+    "explanation": "Une mise a jour Windows n'a pas pu s'installer. Le message contient le code d'erreur WU.",
+    "remediation": "1. Outil de depannage Windows Update. 2. Reinitialiser SoftwareDistribution. 3. Installer manuellement depuis le catalogue Microsoft Update.",
+    "severity": "error"
+  },
+  "25": {
+    "title": "WindowsUpdateClient — mise a jour annulee/revertie",
+    "explanation": "Une mise a jour a echoue et a ete annulee (rollback).",
+    "remediation": "1. Verifier l'espace disque. 2. Outil de depannage WU. 3. Reessayer apres redemarrage.",
+    "severity": "warning"
+  },
+  "161": {
+    "title": "volmgr — echec de creation du fichier de vidage (dump)",
+    "explanation": "Lors d'un BSOD, le fichier de vidage memoire n'a pas pu etre cree (fichier d'echange trop petit ou mal configure).",
+    "remediation": "1. Verifier la config du fichier d'echange (geree par le systeme). 2. Espace disque suffisant sur C:. 3. Parametres -> demarrage et recuperation.",
+    "severity": "warning"
+  },
+  "1023": {
+    "title": "Perflib / .NET — chargement de compteur echoue",
+    "explanation": "Une DLL de compteur de performance .NET n'a pas pu se charger. Generalement benin.",
+    "remediation": "1. Souvent ignorable. 2. lodctr /r pour reconstruire. 3. Reparer le .NET Framework.",
+    "severity": "info"
+  },
+  "1101": {
+    "title": "Eventlog — audit de securite",
+    "explanation": "Evenement d'audit du journal de securite. Informatif.",
+    "remediation": "Aucune action.",
+    "severity": "info"
+  },
+  "1129": {
+    "title": "GroupPolicy — traitement impossible (pas de reseau)",
+    "explanation": "Les strategies de groupe n'ont pas pu s'appliquer car le reseau n'etait pas disponible au demarrage.",
+    "remediation": "1. Activer 'Toujours attendre le reseau au demarrage' (GPO). 2. Verifier la connectivite au DC. 3. gpupdate /force une fois connecte.",
+    "severity": "warning"
+  },
+  "109": {
+    "title": "Kernel-Power — transition d'alimentation",
+    "explanation": "Le noyau signale une transition d'alimentation (veille, arret). Generalement informatif.",
+    "remediation": "Aucune action sauf si correle a des arrets inattendus (voir Event 41).",
+    "severity": "info"
+  },
+  "12": {
+    "title": "Kernel-General — demarrage du systeme d'exploitation",
+    "explanation": "Marque le demarrage du systeme avec l'heure. Informatif.",
+    "remediation": "Aucune action.",
+    "severity": "info"
+  },
+  "13": {
+    "title": "Kernel-General — arret du systeme d'exploitation",
+    "explanation": "Marque l'arret propre du systeme. Informatif.",
+    "remediation": "Aucune action.",
+    "severity": "info"
+  },
+  "16": {
+    "title": "Kernel-General — changement d'heure systeme",
+    "explanation": "L'heure systeme a ete modifiee (manuel, NTP, ou processus). A surveiller si inattendu.",
+    "remediation": "1. Verifier la source du changement. 2. Synchroniser via w32tm /resync. 3. Verifier la pile CMOS si l'heure derive.",
+    "severity": "info"
   }
 }

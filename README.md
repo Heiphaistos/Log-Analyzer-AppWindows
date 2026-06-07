@@ -24,8 +24,15 @@ Interface native — pas de navigateur, pas de serveur web.
 
 **Onglet Planificateur de tâches**
 - Liste toutes les tâches : état, dernière exécution, prochaine, **code de résultat traduit**.
-- Échecs mis en avant, filtre "échecs uniquement", recherche.
-- Remédiation par code (`data/taskcodes.json`).
+- Échecs mis en avant (détection précise via bit de sévérité), filtre "échecs uniquement", recherche.
+- Remédiation par code : base curée (`data/taskcodes.json`, 68 codes) **+ décodeur universel**.
+
+**Décodeur universel d'erreurs**
+- N'importe quel code (HRESULT / Win32 / NTSTATUS / applicatif) est interprété automatiquement
+  via `FormatMessage` (message système réel) même s'il n'est pas dans la base curée.
+- Détection de la facilité (Win32, COM, RPC, MSI…) + remédiation heuristique + sévérité.
+- Les codes d'erreur **embarqués dans les messages d'évènements** sont aussi décodés.
+- Bases curées : 81 Event IDs + 68 codes tâches pour la précision sur les cas courants.
 
 **Transverses**
 - Préférences persistées (`%AppData%/WinLogAnalyzer/settings.json`).

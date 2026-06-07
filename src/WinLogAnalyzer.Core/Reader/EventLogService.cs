@@ -2,6 +2,7 @@ using System.Diagnostics.Eventing.Reader;
 using WinLogAnalyzer.Core.Knowledge;
 using WinLogAnalyzer.Core.Models;
 using WinLogAnalyzer.Core.Process;
+using WinLogAnalyzer.Core.Tasks;
 
 namespace WinLogAnalyzer.Core.Reader;
 
@@ -80,6 +81,11 @@ public sealed class EventLogService
         string message;
         try { message = record.FormatDescription() ?? "(aucune description)"; }
         catch { message = "(description indisponible — provider manquant)"; }
+        message = message.Trim();
+
+        // Solution curee (Event ID), sinon code d'erreur decode depuis le message.
+        var solution = _solutions.Lookup(eventId, source)
+                       ?? Win32ErrorDecoder.TryDecodeFromText(message);
 
         return new EventEntry
         {
@@ -88,10 +94,10 @@ public sealed class EventLogService
             LogName = logName,
             Source = source,
             TimeCreated = record.TimeCreated ?? DateTime.MinValue,
-            Message = message.Trim(),
+            Message = message,
             ProcessId = pid,
             ProcessName = _resolver.Resolve(pid),
-            Solution = _solutions.Lookup(eventId, source)
+            Solution = solution
         };
     }
 
