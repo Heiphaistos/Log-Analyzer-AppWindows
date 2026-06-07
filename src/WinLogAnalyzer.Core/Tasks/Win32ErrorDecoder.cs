@@ -14,13 +14,18 @@ public static class Win32ErrorDecoder
     private const uint FORMAT_MESSAGE_FROM_HMODULE = 0x00000800;
     private const uint FORMAT_MESSAGE_FROM_SYSTEM = 0x00001000;
     private const uint FORMAT_MESSAGE_IGNORE_INSERTS = 0x00000200;
+    private const uint LOAD_LIBRARY_SEARCH_SYSTEM32 = 0x00000800;
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern int FormatMessage(uint flags, IntPtr source, uint messageId,
         uint langId, StringBuilder buffer, int size, IntPtr args);
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-    private static extern IntPtr LoadLibrary(string name);
+    private static extern IntPtr LoadLibraryEx(string name, IntPtr reserved, uint flags);
+
+    // Charge ntdll depuis System32 uniquement (anti DLL-planting), une seule fois.
+    private static readonly IntPtr Ntdll =
+        LoadLibraryEx("ntdll.dll", IntPtr.Zero, LOAD_LIBRARY_SEARCH_SYSTEM32);
 
     /// <summary>Construit une explication + remediation pour tout code (jamais null).</summary>
     public static Solution Describe(int code) => Build(code, SystemMessage((uint)code));
@@ -125,24 +130,25 @@ public static class Win32ErrorDecoder
         var direct = FromSource(FORMAT_MESSAGE_FROM_SYSTEM, IntPtr.Zero, u);
         if (!string.IsNullOrWhiteSpace(direct)) return direct;
 
-        // 3) NTSTATUS via ntdll.
-        if ((u & 0xF0000000) is 0xC0000000 or 0xD0000000 or 0x40000000)
+        // 3) NTSTATUS via ntdll (handle cache, charge depuis System32).
+        if ((u & 0xF0000000) is 0xC0000000 or 0xD0000000 or 0x40000000 && Ntdll != IntPtr.Zero)
         {
-            var nt = LoadLibrary("ntdll.dll");
-            if (nt != IntPtr.Zero)
-            {
-                var m = FromSource(FORMAT_MESSAGE_FROM_HMODULE, nt, u);
-                if (!string.IsNullOrWhiteSpace(m)) return m;
-            }
+            var m = FromSource(FORMAT_MESSAGE_FROM_HMODULE, Ntdll, u);
+            if (!string.IsNullOrWhiteSpace(m)) return m;
         }
         return "";
     }
 
     private static string FromSource(uint baseFlags, IntPtr module, uint id)
     {
-        var sb = new StringBuilder(2048);
-        int len = FormatMessage(baseFlags | FORMAT_MESSAGE_IGNORE_INSERTS,
-            module, id, 0, sb, sb.Capacity, IntPtr.Zero);
+        uint flags = baseFlags | FORMAT_MESSAGE_IGNORE_INSERTS;
+        var sb = new StringBuilder(8192);
+        int len = FormatMessage(flags, module, id, 0, sb, sb.Capacity, IntPtr.Zero);
+        if (len == 0 && Marshal.GetLastWin32Error() == 122) // ERROR_INSUFFICIENT_BUFFER
+        {
+            sb = new StringBuilder(65535);
+            len = FormatMessage(flags, module, id, 0, sb, sb.Capacity, IntPtr.Zero);
+        }
         return len > 0 ? sb.ToString().Trim() : "";
     }
 
