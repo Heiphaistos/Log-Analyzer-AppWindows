@@ -10,20 +10,25 @@ namespace WinLogAnalyzer.Core.Tasks;
 public sealed class ResultCodeProvider
 {
     private readonly Dictionary<string, Solution> _map;
+    private readonly ErrorDatabase? _db;
 
     public int Count => _map.Count;
 
-    public ResultCodeProvider(string jsonPath)
+    public ResultCodeProvider(string jsonPath, ErrorDatabase? db = null)
     {
         _map = Load(jsonPath);
+        _db = db;
     }
 
-    /// <summary>Entree curee si presente, sinon decodage universel (jamais null).</summary>
+    /// <summary>
+    /// Resolution en cascade : remediation curee -> base offline complete -> decodage live.
+    /// Ne retourne jamais null.
+    /// </summary>
     public Solution Describe(int code)
     {
         string hex = "0x" + ((uint)code).ToString("X8");
         if (_map.TryGetValue(hex, out var s)) return s;
-        return Win32ErrorDecoder.Describe(code);
+        return _db?.Lookup(code) ?? Win32ErrorDecoder.Describe(code);
     }
 
     /// <summary>Entree curee uniquement (null si absente).</summary>

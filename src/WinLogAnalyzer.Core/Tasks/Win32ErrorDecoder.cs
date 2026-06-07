@@ -23,12 +23,18 @@ public static class Win32ErrorDecoder
     private static extern IntPtr LoadLibrary(string name);
 
     /// <summary>Construit une explication + remediation pour tout code (jamais null).</summary>
-    public static Solution Describe(int code)
+    public static Solution Describe(int code) => Build(code, SystemMessage((uint)code));
+
+    /// <summary>
+    /// Construit la Solution a partir du code et d'un message deja connu (ex: issu de
+    /// la base offline errordb.json). Si <paramref name="sysMsg"/> est vide, fallback live.
+    /// </summary>
+    public static Solution Build(int code, string? sysMsg)
     {
         uint u = (uint)code;
         string hex = "0x" + u.ToString("X8");
+        if (string.IsNullOrWhiteSpace(sysMsg)) sysMsg = SystemMessage(u);
         var (kind, facility) = Classify(u);
-        string sysMsg = SystemMessage(u);
 
         string explanation = string.IsNullOrWhiteSpace(sysMsg)
             ? $"Code {kind} {hex}. Aucune description systeme disponible — code probablement specifique a l'application."
@@ -47,7 +53,7 @@ public static class Win32ErrorDecoder
     /// Cherche un code d'erreur (HRESULT/NTSTATUS, 0x8/0xC/0xD/0x4 + 7 hex) dans un texte
     /// libre (message d'event) et le decode. Null si aucun code plausible.
     /// </summary>
-    public static Solution? TryDecodeFromText(string? text)
+    public static Solution? TryDecodeFromText(string? text, ErrorDatabase? db = null)
     {
         if (string.IsNullOrEmpty(text)) return null;
 
@@ -61,7 +67,7 @@ public static class Win32ErrorDecoder
             return null;
         if (!IsFailure(code)) return null;
 
-        var sol = Describe((int)code);
+        var sol = db?.Lookup((int)code) ?? Describe((int)code);
         return sol with { Title = $"Code detecte dans le message — {sol.Title}" };
     }
 

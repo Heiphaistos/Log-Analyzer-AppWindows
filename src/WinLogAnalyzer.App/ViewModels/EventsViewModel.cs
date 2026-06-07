@@ -13,6 +13,7 @@ using WinLogAnalyzer.Core.Models;
 using WinLogAnalyzer.Core.Process;
 using WinLogAnalyzer.Core.Reader;
 using WinLogAnalyzer.Core.Settings;
+using WinLogAnalyzer.Core.Tasks;
 
 namespace WinLogAnalyzer.App.ViewModels;
 
@@ -25,6 +26,7 @@ public sealed class EventsViewModel : ObservableObject, IDisposable
     private readonly SolutionProvider _solutions;
     private readonly AppSettings _settings;
     private readonly FileLogger _logger;
+    private readonly ErrorDatabase? _errorDb;
 
     private List<EventEntry> _raw = new();
     private readonly List<EventLogWatcher> _watchers = new();
@@ -34,11 +36,12 @@ public sealed class EventsViewModel : ObservableObject, IDisposable
     private bool _isLoading;
     private int _newCount;
 
-    public EventsViewModel(SolutionProvider solutions, AppSettings settings, FileLogger logger)
+    public EventsViewModel(SolutionProvider solutions, AppSettings settings, FileLogger logger, ErrorDatabase? errorDb = null)
     {
         _solutions = solutions;
         _settings = settings;
         _logger = logger;
+        _errorDb = errorDb;
 
         Events = new ObservableCollection<EventItemViewModel>();
         EventsView = CollectionViewSource.GetDefaultView(Events);
@@ -154,7 +157,7 @@ public sealed class EventsViewModel : ObservableObject, IDisposable
             var entries = await Task.Run(() =>
             {
                 var resolver = new ProcessResolver();
-                var service = new EventLogService(resolver, _solutions);
+                var service = new EventLogService(resolver, _solutions, _errorDb);
                 var merged = new List<EventEntry>();
                 foreach (var log in logs)
                 {
@@ -237,7 +240,7 @@ public sealed class EventsViewModel : ObservableObject, IDisposable
     {
         try
         {
-            var service = new EventLogService(new ProcessResolver(), _solutions);
+            var service = new EventLogService(new ProcessResolver(), _solutions, _errorDb);
             foreach (var log in _settings.SelectedLogs())
             {
                 string logName = log;
@@ -275,7 +278,7 @@ public sealed class EventsViewModel : ObservableObject, IDisposable
         EventEntry entry;
         try
         {
-            var service = new EventLogService(new ProcessResolver(), _solutions);
+            var service = new EventLogService(new ProcessResolver(), _solutions, _errorDb);
             entry = service.Map(e.EventRecord, logName);
         }
         catch { return; }

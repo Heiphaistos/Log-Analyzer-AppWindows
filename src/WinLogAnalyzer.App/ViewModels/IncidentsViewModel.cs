@@ -7,6 +7,7 @@ using WinLogAnalyzer.Core.Models;
 using WinLogAnalyzer.Core.Process;
 using WinLogAnalyzer.Core.Reader;
 using WinLogAnalyzer.Core.Settings;
+using WinLogAnalyzer.Core.Tasks;
 
 namespace WinLogAnalyzer.App.ViewModels;
 
@@ -16,16 +17,18 @@ public sealed class IncidentsViewModel : ObservableObject
     private readonly SolutionProvider _solutions;
     private readonly AppSettings _settings;
     private readonly FileLogger _logger;
+    private readonly ErrorDatabase? _errorDb;
 
     private string _statusText = "Pret.";
     private bool _isLoading;
     private int _windowSeconds = 120;
 
-    public IncidentsViewModel(SolutionProvider solutions, AppSettings settings, FileLogger logger)
+    public IncidentsViewModel(SolutionProvider solutions, AppSettings settings, FileLogger logger, ErrorDatabase? errorDb = null)
     {
         _solutions = solutions;
         _settings = settings;
         _logger = logger;
+        _errorDb = errorDb;
         Incidents = new ObservableCollection<IncidentViewModel>();
         RefreshCommand = new RelayCommand(async () => await LoadAsync(), () => !_isLoading);
     }
@@ -64,7 +67,7 @@ public sealed class IncidentsViewModel : ObservableObject
 
             var incidents = await Task.Run(() =>
             {
-                var service = new EventLogService(new ProcessResolver(), _solutions);
+                var service = new EventLogService(new ProcessResolver(), _solutions, _errorDb);
                 var merged = new List<EventEntry>();
                 foreach (var log in logs)
                 {

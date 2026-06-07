@@ -19,11 +19,11 @@ public sealed class TasksViewModel : ObservableObject
     private bool _isLoading;
     private bool _failuresOnly;
 
-    public TasksViewModel(FileLogger logger)
+    public TasksViewModel(FileLogger logger, ErrorDatabase? errorDb = null)
     {
         _logger = logger;
         var codesPath = Path.Combine(AppContext.BaseDirectory, "data", "taskcodes.json");
-        _service = new TaskSchedulerService(new ResultCodeProvider(codesPath));
+        _service = new TaskSchedulerService(new ResultCodeProvider(codesPath, errorDb));
 
         Tasks = new ObservableCollection<TaskItemViewModel>();
         TasksView = CollectionViewSource.GetDefaultView(Tasks);

@@ -14,14 +14,16 @@ public sealed class EventLogService
 {
     private readonly ProcessResolver _resolver;
     private readonly SolutionProvider _solutions;
+    private readonly ErrorDatabase? _errorDb;
 
     // Niveaux Windows : 1=Critical, 2=Error, 3=Warning, 4=Information.
     public static readonly IReadOnlyList<int> CriticalAndError = new[] { 1, 2 };
 
-    public EventLogService(ProcessResolver resolver, SolutionProvider solutions)
+    public EventLogService(ProcessResolver resolver, SolutionProvider solutions, ErrorDatabase? errorDb = null)
     {
         _resolver = resolver;
         _solutions = solutions;
+        _errorDb = errorDb;
     }
 
     /// <summary>Extrait les <paramref name="max"/> derniers events des niveaux demandes.</summary>
@@ -85,7 +87,7 @@ public sealed class EventLogService
 
         // Solution curee (Event ID), sinon code d'erreur decode depuis le message.
         var solution = _solutions.Lookup(eventId, source)
-                       ?? Win32ErrorDecoder.TryDecodeFromText(message);
+                       ?? Win32ErrorDecoder.TryDecodeFromText(message, _errorDb);
 
         return new EventEntry
         {

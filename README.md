@@ -27,12 +27,23 @@ Interface native — pas de navigateur, pas de serveur web.
 - Échecs mis en avant (détection précise via bit de sévérité), filtre "échecs uniquement", recherche.
 - Remédiation par code : base curée (`data/taskcodes.json`, 68 codes) **+ décodeur universel**.
 
-**Décodeur universel d'erreurs**
-- N'importe quel code (HRESULT / Win32 / NTSTATUS / applicatif) est interprété automatiquement
-  via `FormatMessage` (message système réel) même s'il n'est pas dans la base curée.
-- Détection de la facilité (Win32, COM, RPC, MSI…) + remédiation heuristique + sévérité.
-- Les codes d'erreur **embarqués dans les messages d'évènements** sont aussi décodés.
-- Bases curées : 81 Event IDs + 68 codes tâches pour la précision sur les cas courants.
+**Base d'erreurs exhaustive (offline)**
+- `data/errordb.json` : **~11 000 codes** Windows (Win32, HRESULT, NTSTATUS, Windows Update)
+  générés depuis les tables systèmes de Windows — couvre tout le catalogue, pas seulement
+  ce qui est arrivé sur la machine.
+- Générée par `tools/ErrorDbGen` (FormatMessage sur ntdll/wuapi/système), embarquée dans l'app.
+
+**Résolution en cascade — n'importe quel code est interprété**
+1. Remédiation **curée** (81 Event IDs + 68 codes tâches) — la plus précise.
+2. **Base offline** (~11 000 codes) — message système exact.
+3. **Décodeur live** `FormatMessage` (HRESULT/Win32/NTSTATUS) — ultime filet, infini.
+- Détection de facilité (Win32, COM, RPC, MSI…) + remédiation heuristique + sévérité.
+- Les codes **embarqués dans les messages d'évènements** sont aussi décodés.
+
+## Régénérer la base d'erreurs
+```bat
+dotnet run --project tools/ErrorDbGen -c Release -- src/WinLogAnalyzer.App/data/errordb.json
+```
 
 **Transverses**
 - Préférences persistées (`%AppData%/WinLogAnalyzer/settings.json`).

@@ -3,6 +3,7 @@ using WinLogAnalyzer.App.Infrastructure;
 using WinLogAnalyzer.Core.Knowledge;
 using WinLogAnalyzer.Core.Logging;
 using WinLogAnalyzer.Core.Settings;
+using WinLogAnalyzer.Core.Tasks;
 
 namespace WinLogAnalyzer.App.ViewModels;
 
@@ -20,11 +21,14 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         var solutionsPath = Path.Combine(AppContext.BaseDirectory, "data", "solutions.json");
         _solutions = new SolutionProvider(solutionsPath, hotReload: true);
 
-        Events = new EventsViewModel(_solutions, settings, _logger);
-        Tasks = new TasksViewModel(_logger);
-        Incidents = new IncidentsViewModel(_solutions, settings, _logger);
+        var errorDbPath = Path.Combine(AppContext.BaseDirectory, "data", "errordb.json");
+        var errorDb = new ErrorDatabase(errorDbPath);
 
-        _logger.Info("Application demarree.");
+        Events = new EventsViewModel(_solutions, settings, _logger, errorDb);
+        Tasks = new TasksViewModel(_logger, errorDb);
+        Incidents = new IncidentsViewModel(_solutions, settings, _logger, errorDb);
+
+        _logger.Info($"Application demarree. Base d'erreurs : {errorDb.Count} codes.");
     }
 
     public EventsViewModel Events { get; }
