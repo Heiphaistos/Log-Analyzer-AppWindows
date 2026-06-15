@@ -2,7 +2,7 @@
 ## Démonstration
 
 <video controls width="100%" preload="none">
-  <source src="https://mydepot.heiphaistos.org/Heiphaistos/Log-Analyzer-AppWindows/releases/download/v1.0.0/demo.mp4" type="video/mp4">\n</video>\n
+  <source src="https://media.heiphaistos.org/videos/loganalyzer.mp4" type="video/mp4">\n</video>\n
 Application **desktop Windows** (WPF, .NET 8) de diagnostic : analyse l'Observateur
 d'évènements **et** le Planificateur de tâches, traduit les PID/codes en clair, et propose
 pour chaque problème connu une **explication + remédiation** (base de connaissance locale).
