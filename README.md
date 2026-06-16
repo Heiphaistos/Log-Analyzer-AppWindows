@@ -1,5 +1,7 @@
 # WinLog Analyzer · v1.1
+## Démonstration
 
+<video src="https://media.heiphaistos.org/videos/loganalyzer.mp4" controls width="100%" preload="none"></video>\n
 Application **desktop Windows** (WPF, .NET 8) de diagnostic : analyse l'Observateur
 d'évènements **et** le Planificateur de tâches, traduit les PID/codes en clair, et propose
 pour chaque problème connu une **explication + remédiation** (base de connaissance locale).
