@@ -1,4 +1,4 @@
-# WinLog Analyzer · v1.1
+# WinLog Analyzer · v1.8
 ## Démonstration
 
 <video src="https://media.heiphaistos.org/videos/loganalyzer.mp4" controls width="100%" preload="none"></video>\n
@@ -12,12 +12,14 @@ Interface native — pas de navigateur, pas de serveur web.
 
 **Onglet Évènements**
 - Journaux System / Application / Security **simultanés** (multi-sélection), niveaux Critical / Error / Warning / Information.
-- Filtre par **période** (24h / 7j / 30j / tout) + recherche live.
+- Filtre par **période** (24h / 7j / 30j / tout) **appliqué dans la requête** : on obtient les
+  N events de la période, pas un sous-ensemble des N derniers. Recherche live (debounce 250 ms).
 - Résolution PID → nom de process (`[termine]` si mort).
 - Déduplication avec compteur ×N, liste virtualisée (fluide sur gros volumes).
 - Cartes dépliables : message brut + explication + remédiation + liens doc.
 - Timeline d'activité par jour.
-- **Surveillance temps réel** (un `EventLogWatcher` par journal) avec compteur de nouveaux évènements.
+- **Surveillance temps réel** (un `EventLogWatcher` par journal) avec compteur de nouveaux
+  évènements ; les watchers se resynchronisent si on change journaux/niveaux en cours de route.
 - **Export** CSV + HTML + **PDF** (QuestPDF).
 - **Outils** : services.msc, Moniteur de fiabilité, test RAM (mdsched, confirmation), Observateur.
 
@@ -88,7 +90,7 @@ run.bat     :: lance en admin
 ```
 
 ## Installeur (optionnel)
-Inno Setup 6+ requis : `iscc installer\setup.iss` → `dist\installer\WinLogAnalyzer-Setup-1.0.0.exe`.
+Inno Setup 6+ requis : `iscc installer\setup.iss` → `dist\installer\WinLogAnalyzer-Setup-1.8.0.exe`.
 
 ## Ajouter une solution / un code
 Éditer `data/solutions.json` (Event ID, clé `id` ou `source:id`) ou `data/taskcodes.json`

@@ -73,8 +73,20 @@ Légende sévérité : 🔴 critique · 🟠 moyen · 🟡 faible · 🟢 OK · 
 3. ✅ **C4** Préférences : `SaveDebounced()` (timer 600 ms) au lieu d'une écriture par toggle.
 4. ✅ **Q4** CI GitHub Actions (`.github/workflows/ci.yml`) : build Core+App + tests sur push/PR.
 
+## Recommandations traitées (v1.8)
+1. ✅ **C5** Course FSW `SolutionProvider._lastReload` → debounce sous lock.
+2. ✅ Filtre de période poussé dans la requête XPath (`timediff`) : la plage 24h/7j/30j
+   retourne les N events de la période (avant : re-filtrage client des N derniers seulement).
+3. ✅ Échecs de lecture d'un journal (ex: Security sans droits) affichés dans la barre de
+   statut + logués (avant : `Console.Error`, invisible en app WPF).
+4. ✅ `AppSettings.Flush()` à la fermeture : un toggle < 600 ms avant fermeture n'est plus perdu.
+5. ✅ Export CSV : neutralisation de l'injection de formule (`=` `+` `-` `@` TAB en tête de champ).
+6. ✅ Recherche (Évènements + Tâches) debouncée 250 ms.
+7. ✅ Watchers de surveillance resynchronisés au changement de journaux/niveaux.
+8. ✅ Versions harmonisées (csproj / installeur / README) — 11 tests ajoutés (42 au total).
+
 ## Recommandations restantes
-- C5 (course bénigne FSW) et P2 (volume Incidents) : non bloquants, à surveiller si montée en charge.
+- P2 (volume Incidents) : non bloquant, à surveiller si montée en charge.
 
 ## Verdict
 Application **saine** : lecture seule, locale, sans secret ni réseau, gestion d'erreur robuste,

@@ -78,9 +78,9 @@ public sealed class EventsViewModel : ObservableObject, IDisposable
     public RelayCommand ClearNewCommand { get; }
 
     // --- Journaux (multi) ---
-    public bool LogSystem { get => _settings.LogSystem; set { _settings.LogSystem = value; OnPropertyChanged(); Persist(); } }
-    public bool LogApplication { get => _settings.LogApplication; set { _settings.LogApplication = value; OnPropertyChanged(); Persist(); } }
-    public bool LogSecurity { get => _settings.LogSecurity; set { _settings.LogSecurity = value; OnPropertyChanged(); Persist(); } }
+    public bool LogSystem { get => _settings.LogSystem; set { _settings.LogSystem = value; OnPropertyChanged(); Persist(); RestartMonitorIfActive(); } }
+    public bool LogApplication { get => _settings.LogApplication; set { _settings.LogApplication = value; OnPropertyChanged(); Persist(); RestartMonitorIfActive(); } }
+    public bool LogSecurity { get => _settings.LogSecurity; set { _settings.LogSecurity = value; OnPropertyChanged(); Persist(); RestartMonitorIfActive(); } }
 
     public int MaxCount
     {
@@ -91,13 +91,23 @@ public sealed class EventsViewModel : ObservableObject, IDisposable
     public int SelectedRangeHours
     {
         get => _settings.TimeRangeHours;
-        set { if (_settings.TimeRangeHours != value) { _settings.TimeRangeHours = value; OnPropertyChanged(); Persist(); Rebuild(); } }
+        set
+        {
+            if (_settings.TimeRangeHours == value) return;
+            _settings.TimeRangeHours = value;
+            OnPropertyChanged();
+            Persist();
+            // La periode fait partie de la requete : re-analyser pour obtenir les N events
+            // de la periode (pas juste re-filtrer les N derniers deja charges).
+            if (!IsLoading && _raw.Count > 0) _ = AnalyzeAsync();
+            else Rebuild();
+        }
     }
 
-    public bool LevelCritical { get => _settings.LevelCritical; set { _settings.LevelCritical = value; OnPropertyChanged(); Persist(); } }
-    public bool LevelError { get => _settings.LevelError; set { _settings.LevelError = value; OnPropertyChanged(); Persist(); } }
-    public bool LevelWarning { get => _settings.LevelWarning; set { _settings.LevelWarning = value; OnPropertyChanged(); Persist(); } }
-    public bool LevelInformation { get => _settings.LevelInformation; set { _settings.LevelInformation = value; OnPropertyChanged(); Persist(); } }
+    public bool LevelCritical { get => _settings.LevelCritical; set { _settings.LevelCritical = value; OnPropertyChanged(); Persist(); RestartMonitorIfActive(); } }
+    public bool LevelError { get => _settings.LevelError; set { _settings.LevelError = value; OnPropertyChanged(); Persist(); RestartMonitorIfActive(); } }
+    public bool LevelWarning { get => _settings.LevelWarning; set { _settings.LevelWarning = value; OnPropertyChanged(); Persist(); RestartMonitorIfActive(); } }
+    public bool LevelInformation { get => _settings.LevelInformation; set { _settings.LevelInformation = value; OnPropertyChanged(); Persist(); RestartMonitorIfActive(); } }
 
     public bool GroupDuplicates
     {
@@ -121,7 +131,25 @@ public sealed class EventsViewModel : ObservableObject, IDisposable
     public string SearchText
     {
         get => _searchText;
-        set { if (SetField(ref _searchText, value)) EventsView.Refresh(); }
+        set { if (SetField(ref _searchText, value)) ScheduleSearchRefresh(); }
+    }
+
+    private System.Windows.Threading.DispatcherTimer? _searchTimer;
+
+    // Debounce : Refresh() re-filtre toute la collection ; a chaque frappe sur une grosse
+    // liste, l'UI accroche. Une seule passe 250 ms apres la derniere touche.
+    private void ScheduleSearchRefresh()
+    {
+        if (_searchTimer is null)
+        {
+            _searchTimer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(250)
+            };
+            _searchTimer.Tick += (_, _) => { _searchTimer!.Stop(); EventsView.Refresh(); };
+        }
+        _searchTimer.Stop();
+        _searchTimer.Start();
     }
 
     public string StatusText { get => _statusText; set => SetField(ref _statusText, value); }
@@ -153,7 +181,9 @@ public sealed class EventsViewModel : ObservableObject, IDisposable
             var logs = _settings.SelectedLogs();
             int max = MaxCount;
             var levels = _settings.SelectedLevels();
+            int? maxAge = SelectedRangeHours > 0 ? SelectedRangeHours : null;
 
+            var warnings = new List<string>();
             var entries = await Task.Run(() =>
             {
                 var resolver = new ProcessResolver();
@@ -161,8 +191,8 @@ public sealed class EventsViewModel : ObservableObject, IDisposable
                 var merged = new List<EventEntry>();
                 foreach (var log in logs)
                 {
-                    try { merged.AddRange(service.GetRecent(log, max, levels)); }
-                    catch (InvalidOperationException ex) { Console.Error.WriteLine(ex.Message); }
+                    try { merged.AddRange(service.GetRecent(log, max, levels, maxAge)); }
+                    catch (InvalidOperationException ex) { warnings.Add(ex.Message); }
                 }
                 return merged
                     .OrderByDescending(e => e.TimeCreated)
@@ -172,6 +202,11 @@ public sealed class EventsViewModel : ObservableObject, IDisposable
 
             _raw = entries;
             Rebuild();
+            if (warnings.Count > 0)
+            {
+                StatusText += $" ⚠ {string.Join(" · ", warnings)}";
+                foreach (var w in warnings) _logger.Warn($"Analyse [{Scope}]: {w}");
+            }
             _logger.Info($"Analyse [{Scope}]: {_raw.Count} events.");
         }
         catch (Exception ex)
@@ -259,6 +294,14 @@ public sealed class EventsViewModel : ObservableObject, IDisposable
             _settings.MonitorEnabled = false;
             OnPropertyChanged(nameof(MonitorEnabled));
         }
+    }
+
+    /// <summary>Resynchronise les watchers quand journaux/niveaux changent en cours de surveillance.</summary>
+    private void RestartMonitorIfActive()
+    {
+        if (!_settings.MonitorEnabled || _watchers.Count == 0) return;
+        StopMonitor();
+        StartMonitor();
     }
 
     private void StopMonitor()
@@ -370,6 +413,8 @@ public sealed class EventsViewModel : ObservableObject, IDisposable
 
     public void Dispose()
     {
+        _searchTimer?.Stop();
+        _rebuildTimer?.Stop();
         StopMonitor();
         _solutions.Changed -= OnSolutionsChanged;
     }

@@ -12,11 +12,12 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 {
     private readonly SolutionProvider _solutions;
     private readonly FileLogger _logger;
+    private readonly AppSettings _settings;
 
     public MainViewModel()
     {
         _logger = new FileLogger();
-        var settings = AppSettings.Load();
+        var settings = _settings = AppSettings.Load();
 
         var solutionsPath = Path.Combine(AppContext.BaseDirectory, "data", "solutions.json");
         _solutions = new SolutionProvider(solutionsPath, hotReload: true);
@@ -39,6 +40,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     {
         Events.Dispose();
         _solutions.Dispose();
+        _settings.Flush(); // une modification a moins de 600 ms de la fermeture serait perdue
         _logger.Info("Application fermee.");
     }
 }

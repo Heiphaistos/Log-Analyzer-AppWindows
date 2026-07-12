@@ -26,11 +26,15 @@ public sealed class EventLogService
         _errorDb = errorDb;
     }
 
-    /// <summary>Extrait les <paramref name="max"/> derniers events des niveaux demandes.</summary>
-    public IReadOnlyList<EventEntry> GetRecent(string logName, int max, IReadOnlyCollection<int>? levels = null)
+    /// <summary>
+    /// Extrait les <paramref name="max"/> derniers events des niveaux demandes.
+    /// <paramref name="maxAgeHours"/> restreint la requete a la periode (0/null = tout),
+    /// cote serveur : on obtient les N events de la periode, pas un sous-ensemble des N derniers.
+    /// </summary>
+    public IReadOnlyList<EventEntry> GetRecent(string logName, int max, IReadOnlyCollection<int>? levels = null, int? maxAgeHours = null)
     {
         var results = new List<EventEntry>(max);
-        var query = new EventLogQuery(logName, PathType.LogName, BuildQuery(levels))
+        var query = new EventLogQuery(logName, PathType.LogName, BuildQuery(levels, maxAgeHours))
         {
             ReverseDirection = true
         };
@@ -103,10 +107,16 @@ public sealed class EventLogService
         };
     }
 
-    private static string BuildQuery(IReadOnlyCollection<int>? levels)
+    /// <summary>Construit la requete XPath (niveaux + periode). Public pour tests.</summary>
+    public static string BuildQuery(IReadOnlyCollection<int>? levels, int? maxAgeHours = null)
     {
         var list = (levels is null || levels.Count == 0) ? CriticalAndError : levels;
         var clause = string.Join(" or ", list.Select(l => $"Level={l}"));
+        if (maxAgeHours is > 0)
+        {
+            long ms = (long)maxAgeHours.Value * 3_600_000;
+            return $"*[System[({clause}) and TimeCreated[timediff(@SystemTime) <= {ms}]]]";
+        }
         return $"*[System[({clause})]]";
     }
 

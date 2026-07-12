@@ -45,7 +45,25 @@ public sealed class TasksViewModel : ObservableObject
     public string SearchText
     {
         get => _searchText;
-        set { if (SetField(ref _searchText, value)) TasksView.Refresh(); }
+        set { if (SetField(ref _searchText, value)) ScheduleSearchRefresh(); }
+    }
+
+    private System.Windows.Threading.DispatcherTimer? _searchTimer;
+
+    // Debounce : la machine peut avoir des centaines de taches ; une seule passe
+    // de filtrage 250 ms apres la derniere frappe.
+    private void ScheduleSearchRefresh()
+    {
+        if (_searchTimer is null)
+        {
+            _searchTimer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(250)
+            };
+            _searchTimer.Tick += (_, _) => { _searchTimer!.Stop(); TasksView.Refresh(); };
+        }
+        _searchTimer.Stop();
+        _searchTimer.Start();
     }
 
     public string StatusText { get => _statusText; set => SetField(ref _statusText, value); }

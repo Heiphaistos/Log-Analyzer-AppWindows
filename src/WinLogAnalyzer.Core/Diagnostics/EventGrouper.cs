@@ -13,11 +13,7 @@ public static class EventGrouper
     {
         return events
             .GroupBy(e => (e.EventId, e.Source))
-            .Select(g =>
-            {
-                var latest = g.OrderByDescending(e => e.TimeCreated).First();
-                return latest with { Count = g.Count() };
-            })
+            .Select(g => g.MaxBy(e => e.TimeCreated)! with { Count = g.Count() })
             .OrderByDescending(e => e.TimeCreated)
             .ToList();
     }

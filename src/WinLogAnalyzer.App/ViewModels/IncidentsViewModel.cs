@@ -65,6 +65,7 @@ public sealed class IncidentsViewModel : ObservableObject
             var levels = _settings.SelectedLevels();
             int window = _windowSeconds;
 
+            var warnings = new List<string>();
             var incidents = await Task.Run(() =>
             {
                 var service = new EventLogService(new ProcessResolver(), _solutions, _errorDb);
@@ -72,7 +73,7 @@ public sealed class IncidentsViewModel : ObservableObject
                 foreach (var log in logs)
                 {
                     try { merged.AddRange(service.GetRecent(log, 500, levels)); }
-                    catch (InvalidOperationException ex) { Console.Error.WriteLine(ex.Message); }
+                    catch (InvalidOperationException ex) { warnings.Add(ex.Message); }
                 }
                 return Correlator.Correlate(merged, window);
             });
@@ -85,6 +86,11 @@ public sealed class IncidentsViewModel : ObservableObject
             StatusText = IncidentCount == 0
                 ? "Aucun incident correle (events isoles)."
                 : $"{IncidentCount} incidents detectes (fenetre {window}s).";
+            if (warnings.Count > 0)
+            {
+                StatusText += $" ⚠ {string.Join(" · ", warnings)}";
+                foreach (var w in warnings) _logger.Warn($"Incidents: {w}");
+            }
             _logger.Info($"Incidents: {IncidentCount} (fenetre {window}s).");
         }
         catch (Exception ex)

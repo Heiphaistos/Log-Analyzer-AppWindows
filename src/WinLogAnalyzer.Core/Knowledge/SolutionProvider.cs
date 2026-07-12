@@ -13,6 +13,7 @@ public sealed class SolutionProvider : IDisposable
     private readonly string _path;
     private volatile Dictionary<string, Solution> _map;
     private FileSystemWatcher? _watcher;
+    private readonly object _reloadGate = new();
     private DateTime _lastReload = DateTime.MinValue;
 
     /// <summary>Leve apres un rechargement a chaud du fichier.</summary>
@@ -80,9 +81,13 @@ public sealed class SolutionProvider : IDisposable
     private void OnFileChanged(object sender, FileSystemEventArgs e)
     {
         // Debounce : les editeurs declenchent plusieurs evenements rapproches.
-        var now = DateTime.UtcNow;
-        if ((now - _lastReload).TotalMilliseconds < 400) return;
-        _lastReload = now;
+        // Lock : le FileSystemWatcher peut lever depuis plusieurs threads (C5 audit).
+        lock (_reloadGate)
+        {
+            var now = DateTime.UtcNow;
+            if ((now - _lastReload).TotalMilliseconds < 400) return;
+            _lastReload = now;
+        }
 
         try
         {

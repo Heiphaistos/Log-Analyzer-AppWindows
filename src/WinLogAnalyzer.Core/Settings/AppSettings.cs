@@ -69,6 +69,21 @@ public sealed class AppSettings
     {
         _saveTimer ??= new System.Threading.Timer(_ => Save());
         _saveTimer.Change(600, System.Threading.Timeout.Infinite);
+        _dirty = true;
+    }
+
+    private volatile bool _dirty;
+
+    /// <summary>
+    /// Ecrit immediatement toute modification en attente (a appeler a la fermeture,
+    /// sinon un toggle suivi d'une fermeture &lt; 600 ms est perdu).
+    /// </summary>
+    public void Flush()
+    {
+        if (!_dirty) return;
+        _dirty = false;
+        _saveTimer?.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
+        Save();
     }
 
     /// <summary>Journaux selectionnes (jamais vide : System par defaut).</summary>

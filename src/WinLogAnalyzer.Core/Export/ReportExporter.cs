@@ -75,6 +75,10 @@ public static class ReportExporter
     private static string Csv(string? v)
     {
         v ??= "";
+        // Anti-injection de formule (OWASP) : un message d'event peut contenir du texte
+        // controle par un tiers ; = + - @ TAB en tete seraient evalues par Excel.
+        if (v.Length > 0 && v[0] is '=' or '+' or '-' or '@' or '\t')
+            v = "'" + v;
         if (v.Contains(';') || v.Contains('"') || v.Contains('\n'))
             return "\"" + v.Replace("\"", "\"\"").Replace("\r", " ").Replace("\n", " ") + "\"";
         return v;
