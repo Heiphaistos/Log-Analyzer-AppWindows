@@ -6,7 +6,7 @@
 ; ============================================================
 
 #define AppName "WinLog Analyzer"
-#define AppVersion "1.8.0"
+#define AppVersion "1.9.0"
 #define AppPublisher "heiphaistos44"
 #define AppExe "WinLogAnalyzer.exe"
 

@@ -1,4 +1,4 @@
-# WinLog Analyzer · v1.8
+# WinLog Analyzer · v1.9
 ## Démonstration
 
 <video src="https://media.heiphaistos.org/videos/loganalyzer.mp4" controls width="100%" preload="none"></video>\n
@@ -90,7 +90,7 @@ run.bat     :: lance en admin
 ```
 
 ## Installeur (optionnel)
-Inno Setup 6+ requis : `iscc installer\setup.iss` → `dist\installer\WinLogAnalyzer-Setup-1.8.0.exe`.
+Inno Setup 6+ requis : `iscc installer\setup.iss` → `dist\installer\WinLogAnalyzer-Setup-1.9.0.exe`.
 
 ## Ajouter une solution / un code
 Éditer `data/solutions.json` (Event ID, clé `id` ou `source:id`) ou `data/taskcodes.json`

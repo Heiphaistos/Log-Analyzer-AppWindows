@@ -22,6 +22,7 @@ public sealed class IncidentsViewModel : ObservableObject
     private string _statusText = "Pret.";
     private bool _isLoading;
     private int _windowSeconds = 120;
+    private List<EventEntry> _cachedEvents = new();
 
     public IncidentsViewModel(SolutionProvider solutions, AppSettings settings, FileLogger logger, ErrorDatabase? errorDb = null)
     {
@@ -41,7 +42,8 @@ public sealed class IncidentsViewModel : ObservableObject
     public int WindowSeconds
     {
         get => _windowSeconds;
-        set { if (SetField(ref _windowSeconds, value)) _ = LoadAsync(); }
+        // Changer la fenetre ne re-lit pas les journaux (P2 audit) : on re-correle le cache.
+        set { if (SetField(ref _windowSeconds, value)) _ = LoadAsync(reload: _cachedEvents.Count == 0); }
     }
 
     public string StatusText { get => _statusText; set => SetField(ref _statusText, value); }
@@ -55,7 +57,7 @@ public sealed class IncidentsViewModel : ObservableObject
 
     public int IncidentCount => Incidents.Count;
 
-    public async Task LoadAsync()
+    public async Task LoadAsync(bool reload = true)
     {
         IsLoading = true;
         StatusText = "Correlation des evenements…";
@@ -68,14 +70,18 @@ public sealed class IncidentsViewModel : ObservableObject
             var warnings = new List<string>();
             var incidents = await Task.Run(() =>
             {
-                var service = new EventLogService(new ProcessResolver(), _solutions, _errorDb);
-                var merged = new List<EventEntry>();
-                foreach (var log in logs)
+                if (reload)
                 {
-                    try { merged.AddRange(service.GetRecent(log, 500, levels)); }
-                    catch (InvalidOperationException ex) { warnings.Add(ex.Message); }
+                    var service = new EventLogService(new ProcessResolver(), _solutions, _errorDb);
+                    var merged = new List<EventEntry>();
+                    foreach (var log in logs)
+                    {
+                        try { merged.AddRange(service.GetRecent(log, 500, levels)); }
+                        catch (InvalidOperationException ex) { warnings.Add(ex.Message); }
+                    }
+                    _cachedEvents = merged;
                 }
-                return Correlator.Correlate(merged, window);
+                return Correlator.Correlate(_cachedEvents, window);
             });
 
             Incidents.Clear();

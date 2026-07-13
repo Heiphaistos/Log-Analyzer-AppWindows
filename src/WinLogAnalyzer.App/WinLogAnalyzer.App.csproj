@@ -17,8 +17,8 @@
     <EnableComHosting>false</EnableComHosting>
 
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <Version>1.8.0</Version>
-    <AssemblyVersion>1.8.0.0</AssemblyVersion>
+    <Version>1.9.0</Version>
+    <AssemblyVersion>1.9.0.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>

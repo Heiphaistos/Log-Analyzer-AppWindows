@@ -85,8 +85,14 @@ Légende sévérité : 🔴 critique · 🟠 moyen · 🟡 faible · 🟢 OK · 
 7. ✅ Watchers de surveillance resynchronisés au changement de journaux/niveaux.
 8. ✅ Versions harmonisées (csproj / installeur / README) — 11 tests ajoutés (42 au total).
 
+## Recommandations traitées (v1.9)
+1. ✅ **P2** Onglet Incidents : changer la fenêtre de corrélation re-corrèle depuis le cache
+   au lieu de relire 500 events/journal ; seul le bouton Actualiser relit les journaux.
+2. ✅ CI GitHub Actions réactivée sur push/PR (aucun secret requis) + durcie :
+   actions pinnées par SHA complet, `permissions: contents: read`, timeout 15 min.
+
 ## Recommandations restantes
-- P2 (volume Incidents) : non bloquant, à surveiller si montée en charge.
+- Aucune. Tous les points d'audit sont traités.
 
 ## Verdict
 Application **saine** : lecture seule, locale, sans secret ni réseau, gestion d'erreur robuste,
