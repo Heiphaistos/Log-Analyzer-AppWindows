@@ -1,4 +1,4 @@
-# WinLog Analyzer · v1.9
+# WinLog Analyzer · v1.10
 ## Démonstration
 
 <video src="https://media.heiphaistos.org/videos/loganalyzer.mp4" controls width="100%" preload="none"></video>\n
@@ -90,7 +90,13 @@ run.bat     :: lance en admin
 ```
 
 ## Installeur (optionnel)
-Inno Setup 6+ requis : `iscc installer\setup.iss` → `dist\installer\WinLogAnalyzer-Setup-1.9.1.exe`.
+Inno Setup 6+ requis : `iscc installer\setup.iss` → `dist\installer\WinLogAnalyzer-Setup-1.10.0.exe`.
+
+## Mise à jour automatique
+- Au démarrage puis toutes les 6 h (réglage « Vérifier automatiquement les mises à jour » en haut à droite), ou via **Rechercher une mise à jour**.
+- Manifeste `latest.json` signé ECDSA P-256 (clé publique dans `AppUpdater.cs`), taille + SHA-256 vérifiés, URL limitée à `github.com/Heiphaistos/Log-Analyzer-AppWindows/releases/download/`.
+- Copie installée par l'installateur : installation silencieuse puis relance. Copie portable : notification + lien.
+- Publier une version (manuel) : `build.bat`, `iscc installer\setup.iss`, `python installer\publier_manifeste.py --notes "..."`, puis créer la release `vX.Y.Z` avec `WinLogAnalyzer-Setup-X.Y.Z.exe` **et** `latest.json`. Clé privée : `D:\MDP\loganalyzer-updater.key` (hors dépôt).
 
 ## Ajouter une solution / un code
 Éditer `data/solutions.json` (Event ID, clé `id` ou `source:id`) ou `data/taskcodes.json`
