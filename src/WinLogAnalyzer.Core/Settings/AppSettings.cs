@@ -23,6 +23,9 @@ public sealed class AppSettings
     public bool GroupDuplicates { get; set; } = true;
     public bool MonitorEnabled { get; set; }
 
+    /// <summary>Verifier les mises a jour au demarrage puis toutes les 6 h.</summary>
+    public bool AutoUpdateCheck { get; set; } = true;
+
     private static string Dir => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "WinLogAnalyzer");
 
