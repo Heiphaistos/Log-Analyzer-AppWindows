@@ -28,6 +28,8 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         Events = new EventsViewModel(_solutions, settings, _logger, errorDb);
         Tasks = new TasksViewModel(_logger, errorDb);
         Incidents = new IncidentsViewModel(_solutions, settings, _logger, errorDb);
+        Updates = new UpdateService(settings, _logger);
+        CheckUpdateCommand = new RelayCommand(() => _ = Updates.CheckAsync(true));
 
         _logger.Info($"Application demarree. Base d'erreurs : {errorDb.Count} codes.");
     }
@@ -35,9 +37,24 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public EventsViewModel Events { get; }
     public TasksViewModel Tasks { get; }
     public IncidentsViewModel Incidents { get; }
+    public UpdateService Updates { get; }
+    public RelayCommand CheckUpdateCommand { get; }
+
+    public bool AutoUpdateCheck
+    {
+        get => _settings.AutoUpdateCheck;
+        set
+        {
+            if (_settings.AutoUpdateCheck == value) return;
+            _settings.AutoUpdateCheck = value;
+            _settings.SaveDebounced();
+            OnPropertyChanged();
+        }
+    }
 
     public void Dispose()
     {
+        Updates.Dispose();
         Events.Dispose();
         _solutions.Dispose();
         _settings.Flush(); // une modification a moins de 600 ms de la fermeture serait perdue

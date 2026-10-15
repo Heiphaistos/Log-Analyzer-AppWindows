@@ -6,7 +6,7 @@
 ; ============================================================
 
 #define AppName "WinLog Analyzer"
-#define AppVersion "1.9.1"
+#define AppVersion "1.10.0"
 #define AppPublisher "heiphaistos44"
 #define AppExe "WinLogAnalyzer.exe"
 
@@ -47,3 +47,5 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopico
 
 [Run]
 Filename: "{app}\{#AppExe}"; Description: "Lancer {#AppName}"; Flags: postinstall nowait skipifsilent runascurrentuser
+; Mise a jour automatique (installation silencieuse) : relance l'application.
+Filename: "{app}\{#AppExe}"; Flags: nowait runascurrentuser; Check: WizardSilent

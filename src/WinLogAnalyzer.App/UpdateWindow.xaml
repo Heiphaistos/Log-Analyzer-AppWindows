@@ -1,0 +1,25 @@
+<Window x:Class="WinLogAnalyzer.App.UpdateWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Mise à jour de WinLog Analyzer" Width="520" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        Icon="Assets/app.ico" Background="{StaticResource Bg}" FontFamily="Segoe UI">
+    <StackPanel Margin="24">
+        <TextBlock x:Name="TitleText" FontSize="18" FontWeight="Bold" />
+        <TextBlock x:Name="VersionText" Foreground="{StaticResource TextDim}" Margin="0,4,0,12" />
+        <TextBlock Text="Nouveautés :" Style="{StaticResource FieldLabel}" />
+        <Border Background="{StaticResource BgCard}" BorderBrush="{StaticResource Border}" BorderThickness="1"
+                CornerRadius="8" Padding="12" MaxHeight="180">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <TextBlock x:Name="NotesText" TextWrapping="Wrap" />
+            </ScrollViewer>
+        </Border>
+        <TextBlock x:Name="StatusText" Margin="0,12,0,0" TextWrapping="Wrap" Foreground="{StaticResource TextDim}" />
+        <ProgressBar x:Name="Progress" Height="8" Margin="0,8,0,0" Minimum="0" Maximum="1" Visibility="Collapsed" />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button x:Name="LaterButton" Content="Plus tard" Style="{StaticResource GhostButton}"
+                    Margin="0,0,8,0" Click="OnLater" />
+            <Button x:Name="InstallButton" Style="{StaticResource PrimaryButton}" Click="OnInstall" />
+        </StackPanel>
+    </StackPanel>
+</Window>
