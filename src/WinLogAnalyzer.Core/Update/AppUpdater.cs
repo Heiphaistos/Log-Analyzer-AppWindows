@@ -18,7 +18,7 @@ public sealed record UpdateInfo(Version Version, string Url, long Size, string S
 /// </summary>
 public sealed class AppUpdater
 {
-    /// <summary>Cle publique (SubjectPublicKeyInfo, base64). Privee : D:/MDP/loganalyzer-updater.key.</summary>
+    /// <summary>Cle publique (SubjectPublicKeyInfo, base64). Cle privee hors depot.</summary>
     public const string PublicKeyBase64 =
         "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEOEOIPgLgXgBZ4mER0BtAomXua8XWO50a1RSlIUabpcWHbcQATvuPqmhMsaud6ZIq40Py3R1NfZsgkTeXlphKDg==";
 

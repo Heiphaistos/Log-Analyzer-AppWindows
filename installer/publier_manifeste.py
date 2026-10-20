@@ -5,7 +5,7 @@ Ne publie rien : produit dist/installer/latest.json a joindre manuellement
 a la release GitHub (avec WinLogAnalyzer-Setup-X.Y.Z.exe).
 
 Signature : ECDSA P-256 / SHA-256, format brut r||s (celui de .NET ECDsa.VerifyData).
-Cle privee : D:\MDP\loganalyzer-updater.key (PEM PKCS8), jamais dans le depot.
+Cle privee (PEM PKCS8, jamais dans le depot) : $LOGANALYZER_UPDATER_KEY, sinon $MDP_DIR/loganalyzer-updater.key.
 
 Usage :
     python installer/publier_manifeste.py --genkey      # une seule fois ; affiche la cle publique
@@ -15,6 +15,7 @@ import argparse
 import base64
 import hashlib
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -24,7 +25,19 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 
 RACINE = Path(__file__).resolve().parents[1]
-CLE = Path(r"D:\MDP\loganalyzer-updater.key")
+
+
+def chemin_cle():
+    e = os.environ.get("LOGANALYZER_UPDATER_KEY")
+    if e:
+        return Path(e)
+    d = os.environ.get("MDP_DIR")
+    if d:
+        return Path(d) / "loganalyzer-updater.key"
+    sys.exit("LOGANALYZER_UPDATER_KEY (ou MDP_DIR) non defini : chemin de la cle de signature")
+
+
+CLE = None  # fixe par main() via chemin_cle()
 BASE = "https://github.com/Heiphaistos/Log-Analyzer-AppWindows/releases/download"
 
 
@@ -55,6 +68,8 @@ def main():
     ap.add_argument("--genkey", action="store_true")
     ap.add_argument("--notes", default="")
     a = ap.parse_args()
+    global CLE
+    CLE = chemin_cle()
     if a.genkey:
         return genkey()
     version = re.search(r'<Version>([^<]+)</Version>',
